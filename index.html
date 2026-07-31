@@ -75,7 +75,7 @@
 
       <section class="experience library-mode" aria-live="polite">
         <div class="stage">
-          <img class="stage-bg" src="./office-background-v2.png" alt="手绘风办公室与桌上的两份午饭" />
+          <img id="stageBackground" class="stage-bg" src="./office-background-v2.png" alt="手绘风办公室与桌上的两份午饭" />
           <div class="stage-wash"></div>
           <div class="scene-label">
             <span class="live-dot"></span>
@@ -149,106 +149,99 @@
           </div>
 
           <div id="endingOverlay" class="ending-overlay hidden">
-            <div class="ending-card review-report">
-              <header class="review-topbar">
-                <div class="review-title-group">
+            <span class="ending-confetti ending-confetti-a" aria-hidden="true"></span>
+            <span class="ending-confetti ending-confetti-b" aria-hidden="true"></span>
+            <span class="ending-confetti ending-confetti-c" aria-hidden="true"></span>
+            <article class="ending-card review-report">
+              <section class="ending-hero" aria-labelledby="endingTitle">
+                <div class="ending-visual">
+                  <img id="endingSceneBg" class="ending-scene-bg" src="./office-background-v2.png" alt="" />
+                  <div class="ending-scene-wash"></div>
+                  <img id="endingNpcPortrait" class="ending-npc-portrait" src="./npc/cyrus/Cyrus_01_neutral.png" alt="" />
                   <span id="endingStamp" class="ending-stamp">危机解除</span>
-                  <p class="report-kicker">STORY COMPLETE · 学习复盘</p>
+                </div>
+
+                <div class="ending-copy">
+                  <p class="report-kicker">STORY COMPLETE</p>
                   <h2 id="endingTitle">你成功换回了午饭</h2>
                   <p id="endingDesc">Cyrus 接受了你的解决方案，你也用更自然的方式完成了道歉。</p>
-                </div>
-                <aside id="reviewMeta" class="review-meta" aria-live="polite">
-                  <span id="reviewMetaIcon" aria-hidden="true">…</span>
-                  <div>
-                    <b id="reviewMetaLabel">复盘准备中</b>
-                    <small id="reviewMetaConfidence">基于本轮真实表达</small>
+                  <dl class="ending-facts" aria-label="本局结果">
+                    <div><dt>结局</dt><dd id="endingResultLabel">危机解除</dd></div>
+                    <div><dt>表达</dt><dd id="endingTurnCount">0 回合</dd></div>
+                    <div><dt>语言</dt><dd id="endingLanguage">英语</dd></div>
+                  </dl>
+                  <div class="ending-primary-actions">
+                    <button id="retryBtn" class="primary-btn" type="button">再玩一次</button>
+                    <button id="endingNpcBtn" class="secondary-btn" type="button">选择其他 NPC</button>
                   </div>
-                </aside>
-              </header>
+                </div>
+              </section>
+
+              <div id="languageReviewContent" class="language-review-content hidden">
+                <div class="compact-review-heading">
+                  <div>
+                    <span>一眼复盘</span>
+                    <h3>带走三条最有用的建议</h3>
+                  </div>
+                  <small>只保留本局最值得关注的内容</small>
+                </div>
+
+                <section class="review-summary-card">
+                  <span>一句总评</span>
+                  <p id="reviewSummary"></p>
+                </section>
+
+                <div class="review-insights">
+                  <section class="insight-card strengths-card">
+                    <div class="section-heading compact"><div><span>做得最好</span><h3>继续保持这一点</h3></div></div>
+                    <div id="strengthList" class="insight-list"></div>
+                  </section>
+                  <section class="insight-card priorities-card">
+                    <div class="section-heading compact"><div><span>下一次先改</span><h3>只专注一个重点</h3></div></div>
+                    <div id="priorityList" class="insight-list"></div>
+                  </section>
+                </div>
+
+                <section id="examplesPanel" class="examples-panel">
+                  <div class="section-heading"><div><span>一句升级</span><h3>保留原意，说得更自然</h3></div></div>
+                  <div id="exampleList" class="example-list"></div>
+                </section>
+
+                <footer class="review-actions">
+                  <p><b>下次练习目标：</b><span id="nextPracticeGoal">复盘生成后会给出一个明确目标。</span></p>
+                </footer>
+
+                <details id="reviewDetails" class="review-details">
+                  <summary>查看六维能力与评价范围</summary>
+                  <section class="dimension-panel">
+                    <div class="section-heading">
+                      <div><span>六维能力画像</span><h3>这次表达处于什么水平</h3></div>
+                      <small>每项 1-4 级</small>
+                    </div>
+                    <div id="dimensionList" class="dimension-list"></div>
+                  </section>
+                  <details id="reviewLimitations" class="review-limitations hidden">
+                    <summary>查看本次评价范围</summary>
+                    <ul id="reviewLimitationList"></ul>
+                  </details>
+                </details>
+              </div>
+
+              <details id="endingConversationPanel" class="conversation-panel ending-conversation hidden">
+                <summary><span>回看完整对话</span><small id="endingConversationCount">0 条</small></summary>
+                <ol id="endingConversationList" class="conversation-list"></ol>
+              </details>
 
               <section id="languageReviewState" class="review-state hidden" aria-live="polite">
                 <div class="review-state-mark" aria-hidden="true">↻</div>
                 <div class="review-state-copy">
-                  <b id="reviewStateTitle">正在整理你的表达</b>
-                  <p id="reviewStateDescription">故事结果已经保存，复盘完成后会自动出现在这里。</p>
+                  <b id="reviewStateTitle">AI 正在整理本局的 3 条关键建议</b>
+                  <p id="reviewStateDescription">故事结果已经保存，你可以先回看结局。</p>
                 </div>
                 <button id="reviewRetryBtn" class="secondary-btn hidden" type="button">重新生成复盘</button>
-                <div id="reviewSkeleton" class="review-skeleton" aria-hidden="true">
-                  <i></i><i></i><i></i><i></i><i></i><i></i>
-                </div>
+                <div id="reviewSkeleton" class="review-progress" aria-hidden="true"><i></i></div>
               </section>
-
-              <details id="endingConversationPanel" class="conversation-panel ending-conversation hidden">
-                <summary>
-                  <span>回看完整对话</span>
-                  <small id="endingConversationCount">0 条</small>
-                </summary>
-                <ol id="endingConversationList" class="conversation-list"></ol>
-              </details>
-
-              <div id="languageReviewContent" class="language-review-content hidden">
-                <section class="review-summary-card">
-                  <span>本轮表现</span>
-                  <p id="reviewSummary"></p>
-                </section>
-
-                <div class="review-layout">
-                  <section class="dimension-panel">
-                    <div class="section-heading">
-                      <div>
-                        <span>六维能力画像</span>
-                        <h3>这次表达处于什么水平</h3>
-                      </div>
-                      <small>每项 1–4 级，不换算百分制</small>
-                    </div>
-                    <div id="dimensionList" class="dimension-list"></div>
-                  </section>
-
-                  <aside class="review-insights">
-                    <section class="insight-card strengths-card">
-                      <div class="section-heading compact">
-                        <div>
-                          <span>做得好的地方</span>
-                          <h3>继续保持</h3>
-                        </div>
-                      </div>
-                      <div id="strengthList" class="insight-list"></div>
-                    </section>
-
-                    <section class="insight-card priorities-card">
-                      <div class="section-heading compact">
-                        <div>
-                          <span>优先改进</span>
-                          <h3>下一次先改这些</h3>
-                        </div>
-                      </div>
-                      <div id="priorityList" class="insight-list"></div>
-                    </section>
-                  </aside>
-                </div>
-
-                <section id="examplesPanel" class="examples-panel">
-                  <div class="section-heading">
-                    <div>
-                      <span>逐句升级</span>
-                      <h3>保留原意，说得更自然</h3>
-                    </div>
-                    <small>优先看最值得修改的句子</small>
-                  </div>
-                  <div id="exampleList" class="example-list"></div>
-                </section>
-
-                <details id="reviewLimitations" class="review-limitations hidden">
-                  <summary>查看本次评价范围</summary>
-                  <ul id="reviewLimitationList"></ul>
-                </details>
-              </div>
-
-              <footer class="review-actions">
-                <p><b>下次练习目标：</b><span id="nextPracticeGoal">复盘生成后会给出一个明确目标。</span></p>
-                <button id="retryBtn" class="secondary-btn" type="button">重新体验故事</button>
-              </footer>
-            </div>
+            </article>
           </div>
         </div>
 
@@ -360,7 +353,7 @@
       </section>
     </main>
     <script src="./audio.js?v=20260801-conversation-silence"></script>
-    <script src="./app.js?v=20260801-space-recording-focus"></script>
+    <script src="./app.js?v=20260801-compact-review"></script>
     <script src="./vendor/voice/ort.min.js"></script>
     <script src="./vendor/voice/vad.bundle.min.js"></script>
     <script type="module" src="./voice.js?v=20260801-space-recording"></script>
