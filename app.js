@@ -840,9 +840,9 @@ function renderLiveSession(session, npcReply = null, userText = "") {
     (isJapanese ? "输入你的日语表达，它会出现在这里…" : "输入你的英文表达，它会出现在这里…");
   $("crisisBadge").textContent = replyStageText || "剧情正在变化";
   $("crisisBadge").classList.toggle("visible", Boolean(replyStageText));
-  $("timerValue").textContent = "∞";
+  $("timerValue").textContent = "";
   $("timer").style.setProperty("--progress", "1");
-  $("timer").querySelector("span").textContent = "自由说";
+  $("timer").querySelector(".timer-label").textContent = "自由说";
   $("voiceStatus").textContent = "点击麦克风说话，或使用文本输入";
   $("turnInput").placeholder = isJapanese
     ? "日本語で言いたいことを入力してください…"
@@ -1454,7 +1454,7 @@ function setCharacter(mood) {
 function updateTimer() {
   const total = rounds[round]?.seconds || 8;
   $("timerValue").textContent = Math.max(0, secondsLeft);
-  $("timer").querySelector("span").textContent = "秒";
+  $("timer").querySelector(".timer-label").textContent = "秒";
   $("timer").style.setProperty("--progress", String(Math.max(0, secondsLeft / total)));
 }
 
