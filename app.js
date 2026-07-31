@@ -9,6 +9,7 @@ const demoNpcLibrary = [
   {
     id: "cyrus",
     source: "demo",
+    availability: "available",
     name: "Cyrus",
     role: "大型科技公司高管",
     storyId: "lunch-mixup",
@@ -16,6 +17,7 @@ const demoNpcLibrary = [
     storyTitle: "拿错了老板的午饭",
     storyDescription: "开口推动剧情！你有 4 轮对话，在 Cyrus 走进办公室之前补救这场午餐危机。",
     level: "A2–B1 · 职场沟通",
+    accent: "#ffd95e",
     selectImage: "/assets/npc/cyrus/Cyrus_00_grid_select.png",
     emotionAssets: {
       neutral: "/assets/npc/cyrus/Cyrus_01_neutral.png",
@@ -24,6 +26,94 @@ const demoNpcLibrary = [
       angry: "/assets/npc/cyrus/Cyrus_04_angry.png",
       surprised: "/assets/npc/cyrus/Cyrus_05_surprised.png",
       nervous: "/assets/npc/cyrus/Cyrus_06_nervous.png",
+    },
+  },
+  {
+    id: "kate",
+    source: "demo",
+    availability: "comingSoon",
+    name: "Kate",
+    role: "空姐 · 客舱乘务员",
+    storyId: null,
+    episode: "专属剧情 · 待公布",
+    storyTitle: "故事正在筹备中",
+    storyDescription: "Kate 的真实航空服务场景正在编排，故事确定后即可开放。",
+    level: "故事待定",
+    accent: "#cfe6ff",
+    selectImage: "/assets/npc/kate/Kate_00_grid_select.png",
+    emotionAssets: {
+      neutral: "/assets/npc/kate/Kate_01_neutral.png",
+      happy: "/assets/npc/kate/Kate_02_happy.png",
+      sad: "/assets/npc/kate/Kate_03_sad.png",
+      angry: "/assets/npc/kate/Kate_04_angry.png",
+      surprised: "/assets/npc/kate/Kate_05_surprised.png",
+      nervous: "/assets/npc/kate/Kate_06_nervous.png",
+    },
+  },
+  {
+    id: "mike",
+    source: "demo",
+    availability: "comingSoon",
+    name: "Mike",
+    role: "艺术家",
+    storyId: null,
+    episode: "专属剧情 · 待公布",
+    storyTitle: "故事正在筹备中",
+    storyDescription: "Mike 的艺术生活场景正在编排，故事确定后即可开放。",
+    level: "故事待定",
+    accent: "#f2a05f",
+    selectImage: "/assets/npc/mike/Mike_00_grid_select.png",
+    emotionAssets: {
+      neutral: "/assets/npc/mike/Mike_01_neutral.png",
+      happy: "/assets/npc/mike/Mike_02_happy.png",
+      sad: "/assets/npc/mike/Mike_03_sad.png",
+      angry: "/assets/npc/mike/Mike_04_angry.png",
+      surprised: "/assets/npc/mike/Mike_05_surprised.png",
+      nervous: "/assets/npc/mike/Mike_06_nervous.png",
+    },
+  },
+  {
+    id: "mary",
+    source: "demo",
+    availability: "comingSoon",
+    name: "Mary",
+    role: "咖啡店店员",
+    storyId: null,
+    episode: "专属剧情 · 待公布",
+    storyTitle: "故事正在筹备中",
+    storyDescription: "Mary 的咖啡店生活场景正在编排，故事确定后即可开放。",
+    level: "故事待定",
+    accent: "#d89a6a",
+    selectImage: "/assets/npc/mary/Mary_00_grid_select.png",
+    emotionAssets: {
+      neutral: "/assets/npc/mary/Mary_01_neutral.png",
+      happy: "/assets/npc/mary/Mary_02_happy.png",
+      sad: "/assets/npc/mary/Mary_03_sad.png",
+      angry: "/assets/npc/mary/Mary_04_angry.png",
+      surprised: "/assets/npc/mary/Mary_05_surprised.png",
+      nervous: "/assets/npc/mary/Mary_06_nervous.png",
+    },
+  },
+  {
+    id: "cassie",
+    source: "demo",
+    availability: "comingSoon",
+    name: "Cassie",
+    role: "美国高中生",
+    storyId: null,
+    episode: "专属剧情 · 待公布",
+    storyTitle: "故事正在筹备中",
+    storyDescription: "Cassie 的校园生活场景正在编排，故事确定后即可开放。",
+    level: "故事待定",
+    accent: "#f6b1ca",
+    selectImage: "/assets/npc/cassie/Cassie_00_grid_select.png",
+    emotionAssets: {
+      neutral: "/assets/npc/cassie/Cassie_01_neutral.png",
+      happy: "/assets/npc/cassie/Cassie_02_happy.png",
+      sad: "/assets/npc/cassie/Cassie_03_sad.png",
+      angry: "/assets/npc/cassie/Cassie_04_angry.png",
+      surprised: "/assets/npc/cassie/Cassie_05_surprised.png",
+      nervous: "/assets/npc/cassie/Cassie_06_nervous.png",
     },
   },
 ];
@@ -37,6 +127,8 @@ const npcPresentation = Object.fromEntries(
       storyTitle: npc.storyTitle,
       storyDescription: npc.storyDescription,
       level: npc.level,
+      availability: npc.availability,
+      accent: npc.accent,
       selectImage: npc.selectImage,
       emotionAssets: npc.emotionAssets,
     },
@@ -335,20 +427,28 @@ function escapeHtml(value) {
 function normalizeApiNpc(apiNpc, story, presentationKey) {
   const presentation = npcPresentation[presentationKey];
   const profile = apiNpc.profile || apiNpc;
-  const episode = story.presentation?.episode || presentation.episode.replace("LINGOSTORY · ", "");
-  const level = story.presentation?.level || presentation.level.split(" · ")[0];
-  const estimatedMinutes = story.presentation?.estimatedMinutes || 3;
+  const hasPublishedStory = Boolean(story && !["draft", "archived"].includes(story.status));
+  const episode =
+    story?.presentation?.episode ||
+    (hasPublishedStory ? presentation.episode.replace("LINGOSTORY · ", "") : "专属剧情 · 待公布");
+  const level = story?.presentation?.level || presentation.level.split(" · ")[0];
+  const estimatedMinutes = story?.presentation?.estimatedMinutes || 3;
   return {
     id: apiNpc.id || profile.npcId || presentationKey,
     source: "api",
+    availability: hasPublishedStory ? "available" : "comingSoon",
     name: apiNpc.displayName || profile.displayName || presentationKey,
     role: profile.role || presentation.role,
-    storyId: story.id,
+    storyId: story?.id || null,
     episode: episode.startsWith("LINGOSTORY") ? episode : `LINGOSTORY · ${episode}`,
-    storyTitle: story.title || presentation.storyTitle,
+    storyTitle: story?.title || "故事正在筹备中",
     storyDescription:
-      story.synopsis || `开口推动剧情！在 ${estimatedMinutes} 分钟的自然对话中完成这次沟通挑战。`,
-    level: `${level} · 真实剧情`,
+      story?.synopsis ||
+      (hasPublishedStory
+        ? `开口推动剧情！在 ${estimatedMinutes} 分钟的自然对话中完成这次沟通挑战。`
+        : `${apiNpc.displayName || profile.displayName || presentationKey} 的专属故事正在编排，确定后即可开放。`),
+    level: hasPublishedStory ? `${level} · 真实剧情` : "故事待定",
+    accent: presentation.accent,
     selectImage: presentation.selectImage,
     emotionAssets: presentation.emotionAssets,
   };
@@ -371,7 +471,7 @@ function buildApiNpcLibrary(npcPayload, storyPayload) {
         String(item.npc || "").toLowerCase() === displayName.toLowerCase() ||
         String(item.npc || "").toLowerCase() === presentationKey,
     );
-    return story ? [normalizeApiNpc(apiNpc, story, presentationKey)] : [];
+    return [normalizeApiNpc(apiNpc, story, presentationKey)];
   });
 }
 
@@ -617,27 +717,43 @@ function renderNpcLibrary() {
   const grid = $("npcGrid");
   grid.replaceChildren();
   $("npcCount").textContent = String(npcLibrary.length);
+  const playableCount = npcLibrary.filter(
+    (npc) => npc.availability === "available" && npc.storyId,
+  ).length;
+  $("npcCountLabel").textContent = `位角色 · ${playableCount} 段可体验`;
 
   npcLibrary.forEach((npc) => {
+    const isPlayable = npc.availability === "available" && Boolean(npc.storyId);
     const card = document.createElement("article");
-    card.className = "npc-card";
+    card.className = `npc-card${isPlayable ? "" : " is-coming-soon"}`;
     card.dataset.npcId = npc.id;
+    card.style.setProperty("--npc-accent", npc.accent || "#ffd95e");
     card.innerHTML = `
       <div class="npc-portrait">
-        <span class="npc-availability">${npc.source === "api" ? "真实剧情" : "演示可用"}</span>
+        <span class="npc-availability">${
+          isPlayable ? (npc.source === "api" ? "真实剧情" : "演示可用") : "故事筹备中"
+        }</span>
         <img src="${escapeHtml(npc.selectImage)}" alt="${escapeHtml(npc.name)} 的角色选择立绘" />
       </div>
       <div class="npc-card-body">
         <span class="npc-role">${escapeHtml(npc.role)}</span>
         <h2>${escapeHtml(npc.name)}</h2>
-        <span class="npc-story-label">专属剧情 · ${escapeHtml(npc.episode.replace("LINGOSTORY · ", ""))}</span>
+        <span class="npc-story-label">${
+          isPlayable
+            ? `专属剧情 · ${escapeHtml(npc.episode.replace("LINGOSTORY · ", ""))}`
+            : "专属剧情 · 待公布"
+        }</span>
         <p class="npc-story-title">${escapeHtml(npc.storyTitle)}</p>
         <div class="npc-emotions" aria-label="支持的剧情情绪">
           <span>中性</span><span>开心</span><span>难过</span>
           <span>生气</span><span>紧张</span><span>惊讶</span>
         </div>
-        <button class="npc-enter" type="button" data-select-npc="${escapeHtml(npc.id)}">
-          选择 ${escapeHtml(npc.name)}，进入剧情 →
+        <button
+          class="npc-enter"
+          type="button"
+          ${isPlayable ? `data-select-npc="${escapeHtml(npc.id)}"` : "disabled"}
+        >
+          ${isPlayable ? `选择 ${escapeHtml(npc.name)}，进入剧情 →` : "专属故事筹备中"}
         </button>
       </div>
     `;
@@ -1059,7 +1175,7 @@ function showNpcLibrary() {
 
 function selectNpc(npcId) {
   const nextNpc = npcLibrary.find((npc) => npc.id === npcId);
-  if (!nextNpc) return;
+  if (!nextNpc || nextNpc.availability !== "available" || !nextNpc.storyId) return;
   userSelectedNpc = true;
   clearStoredPlaythrough();
   activeNpc = nextNpc;
