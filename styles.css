@@ -1324,7 +1324,17 @@ a:focus-visible {
 }
 
 .transcript-box span { color: #777066; font-size: 9px; font-weight: 900; }
-.transcript-box p { margin: 4px 0 0; color: #554f47; font: 650 12px/1.45 "Segoe UI", sans-serif; }
+.transcript-box p {
+  max-height: 70px;
+  margin: 4px 0 0;
+  padding-right: 5px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+  scrollbar-gutter: stable;
+  color: #554f47;
+  font: 650 12px/1.45 "Segoe UI", sans-serif;
+}
 .transcript-box.processing { border-style: solid; border-color: var(--red); background: #ffe9ed; }
 
 .transcript-heading {
