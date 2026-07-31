@@ -106,6 +106,15 @@ node scripts/fixture-server.mjs
   直接发送。播放器在首批 PCM 累计约 400ms 后启播，以降低网络抖动造成的断续。
 - ASR/TTS 地址可通过 `window.LINGOSTORY_VOICE_CONFIG` 覆盖。
 
+## Mike 粤语固定故事
+
+- Mike 使用 `targetLanguage=yue`，ASR 会话请求使用 `Cantonese`。
+- 粤语转写完成后自动进入与文本输入相同的 `/turn` 流程。
+- Mike 的 `gpt-sovits` 声线通过同源 `POST /api/tts` 获取完整 WAV；英语和日语仍使用原有 Qwen3-TTS WebSocket。
+- 新回复、开始录音或切换角色会取消旧请求并停止旧 WAV，避免串播。
+- GPT-SoVITS 不可用时只跳过语音，字幕和剧情状态不会丢失。
+- 粤语故事与日语故事一样暂不生成英语学习复盘。
+
 ## 主要文件
 
 - `index.html`：页面结构与真实前端入口

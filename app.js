@@ -62,13 +62,14 @@ const demoNpcLibrary = [
     source: "demo",
     availability: "comingSoon",
     name: "Mike",
-    role: "办公用品公司客服协调员",
+    role: "香港天后港铁站工作人员",
     storyId: null,
     episode: "专属剧情 · 待公布",
     storyTitle: "故事正在筹备中",
-    storyDescription: "Mike 的客户沟通与职场日常场景正在编排，故事确定后即可开放。",
+    storyDescription: "Mike 会用简单粤语协助你确认从天后站前往中环的固定路线。",
     level: "故事待定",
     accent: "#f2a05f",
+    background: "./office-background-v2.png",
     selectImage: "./npc/mike/Mike_00_grid_select.png",
     emotionAssets: {
       neutral: "./npc/mike/Mike_01_neutral.png",
@@ -153,6 +154,10 @@ const storyPresentation = {
   "japan-airport-checkin-yui-ja-v2": {
     title: "日本机场值机",
     synopsis: "从东京飞往上海前，用简单日语回答結衣的值机问题并拿到登机牌。",
+  },
+  "hong-kong-mtr-directions-mike-yue-v3": {
+    title: "在港铁站问路",
+    synopsis: "在天后站向 Mike 询问前往中环的路线，确认港岛线、方向、换乘和站数。",
   },
   "whose-idea-cassie-en-v1": {
     title: "这个想法是谁的？",
@@ -702,9 +707,10 @@ function normalizeApiNpc(apiNpc, story, presentationKey) {
     story?.presentation?.episode ||
     (hasPublishedStory ? presentation.episode.replace("LINGOSTORY · ", "") : "专属剧情 · 待公布");
   const level = story?.level || story?.presentation?.level || presentation.level.split(" · ")[0];
-  const displayLevel =
-    story?.targetLanguage === "ja" && !String(level).includes("日语")
-      ? `${level} · 日语`
+  const displayLevel = story?.targetLanguage === "ja" && !String(level).includes("日语")
+    ? `${level} · 日语`
+    : story?.targetLanguage === "yue" && !String(level).includes("粤语")
+      ? `${level} · 粤语`
       : level;
   const estimatedMinutes =
     story?.estimatedMinutes ?? story?.presentation?.estimatedMinutes ?? 3;
@@ -980,6 +986,10 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   liveSession = session;
   storePlaythroughId(session.sessionId || session.id);
   window.lingostoryVoice?.setLanguage(session.targetLanguage || "en");
+  window.lingostoryVoice?.setRecognitionContext({
+    storyId: session.storyId,
+    beatId: session.currentBeatId,
+  });
 
   const sessionNpcId = session.activeNpc?.id;
   const sessionNpc = npcLibrary.find((npc) => npc.id === sessionNpcId);
@@ -1031,7 +1041,8 @@ function renderLiveSession(session, npcReply = null, userText = "") {
     latestNpcAction?.emotionId ||
     session.activeNpc?.emotionId;
   const isJapanese = session.targetLanguage === "ja";
-  const replyTranslation = isJapanese
+  const isCantonese = session.targetLanguage === "yue";
+  const replyTranslation = isJapanese || isCantonese
     ? ""
     : npcReply?.translationZh || latestNpcUtterance?.presentation?.zhCN?.text || "";
 
@@ -1055,7 +1066,11 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   $("transcript").textContent =
     userText ||
     latestUserEvent?.text ||
-    (isJapanese ? "输入你的日语表达，它会出现在这里…" : "输入你的英文表达，它会出现在这里…");
+    (isJapanese
+      ? "输入你的日语表达，它会出现在这里…"
+      : isCantonese
+        ? "输入你的粤语表达，它会出现在这里…"
+        : "输入你的英文表达，它会出现在这里…");
   $("crisisBadge").textContent = replyStageText || "剧情正在变化";
   $("crisisBadge").classList.toggle("visible", Boolean(replyStageText));
   $("timerValue").textContent = "";
@@ -1064,7 +1079,9 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   $("voiceStatus").textContent = "点击麦克风说话，或使用文本输入";
   $("turnInput").placeholder = isJapanese
     ? "日本語で言いたいことを入力してください…"
-    : "Type what you want to say in English…";
+    : isCantonese
+      ? "用粤语输入你想讲嘅内容…"
+      : "Type what you want to say in English…";
   $("turnForm").classList.remove("is-preparing");
   $("turnForm").classList.remove("hidden");
   $("turnInput").disabled = false;
@@ -1077,7 +1094,7 @@ function renderLiveSession(session, npcReply = null, userText = "") {
 
 function controllerFeedback(controller) {
   if (!controller) return "可以继续说话或使用文本输入";
-  if (activeNpc.targetLanguage === "ja") {
+  if (["ja", "yue"].includes(activeNpc.targetLanguage)) {
     if (controller.reason === "stay") return `${activeNpc.name} 会自然地再确认一次`;
     if (controller.outcome === "success") return "回答已确认，继续下一项";
     if (controller.outcome === "partial" || controller.outcome === "failure") {
@@ -1368,6 +1385,7 @@ function showLiveEnding(session) {
     },
   };
   const isJapanese = session.targetLanguage === "ja";
+  const isCantonese = session.targetLanguage === "yue";
   const localizedEnding = session.presentation?.zhCN?.ending;
   const fallbackCopy = endingCopy[session.ending] || endingCopy.mixed;
   const copy = localizedEnding
@@ -1385,6 +1403,14 @@ function showLiveEnding(session) {
         color: "#dff0c0",
         mood: "happy",
       }
+    : isCantonese
+      ? {
+          stamp: "路线已确认",
+          title: "你顺利完成了粤语沟通",
+          description: "港岛线、行车方向、换乘和站数已经确认。",
+          color: "#dff0c0",
+          mood: "happy",
+        }
     : fallbackCopy;
   $("endingStamp").textContent = copy.stamp;
   $("endingStamp").style.background = copy.color;
@@ -1397,12 +1423,15 @@ function showLiveEnding(session) {
   $("endingOverlay").querySelector(".ending-card").classList.remove("story-only");
   document.querySelector(".experience").classList.add("review-mode");
   $("endingOverlay").classList.remove("hidden");
-  if (isJapanese) {
-    $("nextPracticeGoal").textContent = "本次日语 Demo 暂不生成学习复盘。";
+  if (isJapanese || isCantonese) {
+    const languageName = isCantonese ? "粤语" : "日语";
+    $("nextPracticeGoal").textContent = `本次${languageName} Demo 暂不生成学习复盘。`;
     showLanguageReviewStatus(
       "unavailable",
-      "本次日语 Demo 不生成学习复盘",
-      "值机流程和完整对话已经保存，你可以直接重新体验故事。",
+      `本次${languageName} Demo 不生成学习复盘`,
+      isCantonese
+        ? "问路流程和完整对话已经保存，你可以直接重新体验故事。"
+        : "值机流程和完整对话已经保存，你可以直接重新体验故事。",
     );
   } else {
     startLanguageReview();
@@ -1679,12 +1708,18 @@ function renderNpcLibrary() {
 
 function applyActiveNpc() {
   const isJapanese = activeNpc.targetLanguage === "ja";
+  const isCantonese = activeNpc.targetLanguage === "yue";
   const offline = currentOfflineStory();
   rounds = offline.rounds;
   document.querySelector(".experience").classList.toggle("japanese-story", isJapanese);
+  document.querySelector(".experience").classList.toggle("cantonese-story", isCantonese);
   const stageBackground = document.querySelector(".stage-bg");
   stageBackground.src = activeNpc.background || offline.background;
-  stageBackground.alt = isJapanese ? "日语机场值机故事背景" : offline.backgroundAlt;
+  stageBackground.alt = isJapanese
+    ? "日语机场值机故事背景"
+    : isCantonese
+      ? "粤语港铁问路故事背景"
+      : offline.backgroundAlt;
   $("characterName").textContent = activeNpc.name;
   $("storyTitle").textContent = activeNpc.storyTitle;
   $("storyDescription").textContent = activeNpc.storyDescription;
@@ -1693,11 +1728,19 @@ function applyActiveNpc() {
     activeNpc.source === "api" ? "文本 + 语音" : "语音模拟";
   $("learningPolicyTitle").textContent = isJapanese
     ? "逐题完成值机，不中途打断"
-    : "练习时不打断，故事后再精讲";
+    : isCantonese
+      ? "逐步问清路线，不中途纠音"
+      : "练习时不打断，故事后再精讲";
   $("learningPolicyDescription").textContent = isJapanese
     ? "用简单日语回答一个问题，再进入下一项；没说清时結衣只会自然追问一次。"
-    : "先像真实生活一样把话说完，结束后再集中分析语法、用词和表达自然度。";
-  $("endingModeLabel").textContent = isJapanese ? "固定成功结局" : activeNpc.id === "cassie" ? "4 种剧情结局" : "多结局";
+    : isCantonese
+      ? "用常见词语逐步询问；路线问题不清楚时，Mike 只会自然追问一次。"
+      : "先像真实生活一样把话说完，结束后再集中分析语法、用词和表达自然度。";
+  $("endingModeLabel").textContent = isJapanese || isCantonese
+    ? "固定成功结局"
+    : activeNpc.id === "cassie"
+      ? "4 种剧情结局"
+      : "多结局";
   if (activeNpc.targetLanguage) {
     window.lingostoryVoice?.setLanguage(activeNpc.targetLanguage);
   }
@@ -2100,14 +2143,27 @@ function resetStoryState() {
   $("taskTitle").textContent = "先看清发生了什么";
   $("taskHint").textContent = "点击开始挑战，进入第一轮沟通。";
   const isJapanese = activeNpc.targetLanguage === "ja";
-  $("sceneLabel").textContent = isJapanese ? "东京机场 · 值机柜台" : offline.scene;
-  $("crisisBadge").textContent = isJapanese ? "正在办理值机" : offline.crisis;
+  const isCantonese = activeNpc.targetLanguage === "yue";
+  $("sceneLabel").textContent = isJapanese
+    ? "东京机场 · 值机柜台"
+    : isCantonese
+      ? "香港天后 · 港铁站大堂"
+      : offline.scene;
+  $("crisisBadge").textContent = isJapanese
+    ? "正在办理值机"
+    : isCantonese
+      ? "正在确认路线"
+      : offline.crisis;
   $("subtitle").textContent = isJapanese
     ? "你来到东京机场的值机柜台，准备搭乘前往上海的航班。"
-    : offline.opening;
+    : isCantonese
+      ? "你在天后站，准备乘港铁前往中环。"
+      : offline.opening;
   $("translation").textContent = isJapanese
     ? "結衣正在值机区域协助你完成手续。"
-    : offline.openingDetail;
+    : isCantonese
+      ? "车站工作人员 Mike 请你先说明目的地。"
+      : offline.openingDetail;
   $("speakerName").textContent = "旁白";
   $("voiceStatus").textContent =
     appMode === "live" ? "点击麦克风说话，或使用文本输入" : "点击麦克风，或按住空格说话";
@@ -2120,7 +2176,9 @@ function resetStoryState() {
   $("turnForm").classList.toggle("is-preparing", showPreparedTurnForm);
   $("turnInput").placeholder = isJapanese
     ? "开始挑战后，可在这里输入日语…"
-    : "开始挑战后，可在这里输入英语…";
+    : isCantonese
+      ? "开始挑战后，可在这里输入粤语…"
+      : "开始挑战后，可在这里输入英语…";
   $("turnInput").disabled = showPreparedTurnForm;
   $("sendTurnBtn").disabled = showPreparedTurnForm;
   $("sendTurnBtn").textContent = "发送 →";

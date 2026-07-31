@@ -1,5 +1,6 @@
 export const TTS_MODEL = "Qwen3-TTS-12Hz-1.7B-CustomVoice";
 export const TTS_SAMPLE_RATE = 24_000;
+export const GPT_SOVITS_SAMPLE_RATE = 32_000;
 export const TTS_STARTUP_BUFFER_MS = 400;
 
 export function buildTtsSessionConfig(profile, fallbackLanguage) {
@@ -19,10 +20,96 @@ export function buildTtsTextInput(text) {
   return { type: "input.text", text };
 }
 
+export function isGptSovitsProfile(profile) {
+  return profile?.provider === "gpt-sovits";
+}
+
+export function buildGptSovitsRequest(text, profile) {
+  return {
+    provider: "gpt-sovits",
+    voiceId: profile.voiceId,
+    text,
+  };
+}
+
+export class WavPcmStreamDecoder {
+  constructor({ onPcm, expectedSampleRate = GPT_SOVITS_SAMPLE_RATE }) {
+    this.onPcm = onPcm;
+    this.expectedSampleRate = expectedSampleRate;
+    this.header = new Uint8Array(0);
+    this.ready = false;
+    this.pendingPcmByte = null;
+  }
+
+  push(data) {
+    const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
+    if (this.ready) {
+      this.emit(bytes);
+      return;
+    }
+    const combined = new Uint8Array(this.header.byteLength + bytes.byteLength);
+    combined.set(this.header);
+    combined.set(bytes, this.header.byteLength);
+    if (combined.byteLength < 44) {
+      this.header = combined;
+      return;
+    }
+
+    const text = (start, length) =>
+      String.fromCharCode(...combined.subarray(start, start + length));
+    const view = new DataView(combined.buffer, combined.byteOffset, combined.byteLength);
+    const channels = view.getUint16(22, true);
+    const sampleRate = view.getUint32(24, true);
+    const bitsPerSample = view.getUint16(34, true);
+    if (
+      text(0, 4) !== "RIFF" ||
+      text(8, 4) !== "WAVE" ||
+      text(36, 4) !== "data" ||
+      channels !== 1 ||
+      sampleRate !== this.expectedSampleRate ||
+      bitsPerSample !== 16
+    ) {
+      throw new Error("粤语音频格式不受支持");
+    }
+    this.ready = true;
+    this.header = new Uint8Array(0);
+    this.emit(combined.subarray(44));
+  }
+
+  complete() {
+    if (!this.ready) throw new Error("粤语音频数据不完整");
+    if (this.pendingPcmByte !== null) throw new Error("粤语 PCM 数据长度无效");
+  }
+
+  emit(bytes) {
+    if (!bytes.byteLength) return;
+    let aligned = bytes;
+    if (this.pendingPcmByte !== null) {
+      aligned = new Uint8Array(bytes.byteLength + 1);
+      aligned[0] = this.pendingPcmByte;
+      aligned.set(bytes, 1);
+      this.pendingPcmByte = null;
+    }
+    if (aligned.byteLength % 2) {
+      this.pendingPcmByte = aligned[aligned.byteLength - 1];
+      aligned = aligned.subarray(0, aligned.byteLength - 1);
+    }
+    if (!aligned.byteLength) return;
+    this.onPcm(
+      aligned.buffer.slice(aligned.byteOffset, aligned.byteOffset + aligned.byteLength),
+    );
+  }
+}
+
 export class PcmStartupBuffer {
-  constructor({ onChunk, startupMs = TTS_STARTUP_BUFFER_MS, sampleRate = TTS_SAMPLE_RATE }) {
+  constructor({
+    onChunk,
+    startupMs = TTS_STARTUP_BUFFER_MS,
+    sampleRate = TTS_SAMPLE_RATE,
+    bytesPerSample = 2,
+  }) {
     this.onChunk = onChunk;
-    this.thresholdBytes = Math.ceil((startupMs / 1000) * sampleRate * 2);
+    this.thresholdBytes = Math.ceil((startupMs / 1000) * sampleRate * bytesPerSample);
     this.pending = [];
     this.pendingBytes = 0;
     this.started = false;

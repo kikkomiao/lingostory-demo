@@ -8,11 +8,14 @@ const TTS_URL =
   "wss://joiagent.devops.beta.xiaohongshu.com/tts/qwen3cus/v1/audio/speech/stream";
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outputDirectory = resolve(projectRoot, "tts-baseline-output");
+
 const scenarios = [
   {
     id: "everyday",
-    English: "Thanks for letting me know. I understand what happened, and we can sort it out together. What would you like to do next?",
-    Japanese: "お知らせいただき、ありがとうございます。状況は分かりました。一緒に確認しましょう。次はどうしますか。",
+    English:
+      "Thanks for letting me know. I understand what happened, and we can sort it out together. What would you like to do next?",
+    Japanese:
+      "お知らせいただき、ありがとうございます。状況は分かりました。一緒に確認しましょう。次はどうしますか。",
   },
   {
     id: "short-question",
@@ -21,13 +24,17 @@ const scenarios = [
   },
   {
     id: "information",
-    English: "Your appointment is at ten thirty on Friday, August fourteenth. Please arrive fifteen minutes early and bring your photo ID.",
-    Japanese: "ご予約は八月十四日、金曜日の十時三十分です。十五分前に到着し、写真付きの身分証明書をお持ちください。",
+    English:
+      "Your appointment is at ten thirty on Friday, August fourteenth. Please arrive fifteen minutes early and bring your photo ID.",
+    Japanese:
+      "ご予約は八月十四日、金曜日の十時三十分です。十五分前に到着し、写真付きの身分証明書をお持ちください。",
   },
   {
     id: "long-turn",
-    English: "I checked the details you sent earlier. The first option is still available, but the delivery date has changed. If that timing does not work for you, I can check the second option before we make a decision.",
-    Japanese: "先ほどいただいた内容を確認しました。最初の選択肢はまだ利用できますが、配送日が変わりました。その日程が難しい場合は、決める前に二つ目の選択肢も確認できます。",
+    English:
+      "I checked the details you sent earlier. The first option is still available, but the delivery date has changed. If that timing does not work for you, I can check the second option before we make a decision.",
+    Japanese:
+      "先ほどいただいた内容を確認しました。最初の選択肢はまだ利用できますが、配送日が変わりました。その日程が難しい場合は、決める前に二つ目の選択肢も確認できます。",
   },
 ];
 const voices = [
@@ -71,10 +78,11 @@ function synthesize(sample) {
       clearTimeout(timeout);
       callback(value);
     };
+
     socket.binaryType = "arraybuffer";
     socket.onopen = () => {
       socket.send(JSON.stringify(buildTtsSessionConfig(
-        { voiceId: sample.voiceId, language: sample.language },
+        { model: undefined, voiceId: sample.voiceId, language: sample.language },
         sample.language,
       )));
       socket.send(JSON.stringify(buildTtsTextInput(sample.text)));
@@ -118,6 +126,7 @@ for (const scenario of scenarios) {
     console.log(`${durationSeconds.toFixed(2)}s`);
   }
 }
+
 await writeFile(
   resolve(outputDirectory, "manifest.json"),
   `${JSON.stringify({

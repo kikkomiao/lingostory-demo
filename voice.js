@@ -1,9 +1,18 @@
-import { cleanTranscript, targetLanguageConfig } from "./transcript.js";
+import {
+  cantoneseRecognitionContext,
+  cleanTranscript,
+  correctCantoneseMtrTranscript,
+  targetLanguageConfig,
+} from "./transcript.js";
 import {
   buildTtsSessionConfig,
   buildTtsTextInput,
+  buildGptSovitsRequest,
+  GPT_SOVITS_SAMPLE_RATE,
+  isGptSovitsProfile,
   PcmStartupBuffer,
   TTS_SAMPLE_RATE,
+  WavPcmStreamDecoder,
 } from "./voice-tts.js";
 
 const config = {
@@ -12,6 +21,7 @@ const config = {
   ttsUrl:
     "wss://joiagent.devops.beta.xiaohongshu.com/tts/qwen3cus/v1/audio/speech/stream",
   assetBase: "/vendor/voice/",
+  apiBaseUrl: String(window.LINGOSTORY_API_BASE_URL || "").replace(/\/$/, ""),
   ...window.LINGOSTORY_VOICE_CONFIG,
 };
 const MAX_RECORDING_MS = 30_000;
@@ -43,13 +53,38 @@ class StreamingAsr {
     this.samples = [];
     this.utteranceOpen = false;
     this.rawTranscript = "";
+    this.recognitionContext = null;
   }
 
   setLanguage(targetLanguage) {
-    const normalized = targetLanguage === "ja" ? "ja" : "en";
+    const normalized = ["en", "ja", "yue"].includes(targetLanguage)
+      ? targetLanguage
+      : "en";
     if (normalized === this.targetLanguage) return;
     this.targetLanguage = normalized;
     this.close();
+  }
+
+  setRecognitionContext(recognitionContext) {
+    this.recognitionContext = recognitionContext;
+    if (this.socket?.readyState === WebSocket.OPEN) this.sendSessionUpdate();
+  }
+
+  sendSessionUpdate() {
+    const language = targetLanguageConfig[this.targetLanguage].providerLanguage;
+    this.socket?.send(
+      JSON.stringify({
+        type: "session.update",
+        model: "Qwen3-ASR-1.7B-V2",
+        language,
+        ...(this.targetLanguage === "yue" && this.recognitionContext
+          ? {
+              context: this.recognitionContext.context,
+              hotwords: this.recognitionContext.hotwords,
+            }
+          : {}),
+      }),
+    );
   }
 
   async connect() {
@@ -64,13 +99,7 @@ class StreamingAsr {
       }, 10_000);
       socket.onopen = () => {
         clearTimeout(timeout);
-        socket.send(
-          JSON.stringify({
-            type: "session.update",
-            model: "Qwen3-ASR-1.7B-V2",
-            language: targetLanguageConfig[this.targetLanguage].providerLanguage,
-          }),
-        );
+        this.sendSessionUpdate();
         resolve();
       };
       socket.onerror = () => {
@@ -152,11 +181,15 @@ class StreamingAsr {
 }
 
 class PcmPlayer {
-  constructor() {
+  constructor({ sampleRate = TTS_SAMPLE_RATE } = {}) {
+    this.sampleRate = sampleRate;
     this.context = null;
     this.nextStart = 0;
     this.sources = new Set();
+    this.streamComplete = true;
+    this.idleWaiters = [];
     this.startupBuffer = new PcmStartupBuffer({
+      sampleRate,
       onChunk: (data) => this.schedule(data),
     });
   }
@@ -170,15 +203,26 @@ class PcmPlayer {
     this.startupBuffer.enqueue(data);
   }
 
+  begin() {
+    this.streamComplete = false;
+  }
+
   complete() {
     this.startupBuffer.complete();
+    this.streamComplete = true;
+    this.resolveIdleIfNeeded();
+  }
+
+  waitForEnd() {
+    if (this.streamComplete && this.sources.size === 0) return Promise.resolve();
+    return new Promise((resolve) => this.idleWaiters.push(resolve));
   }
 
   schedule(data) {
     if (!this.context) return;
     const view = new DataView(data);
     const sampleCount = Math.floor(data.byteLength / 2);
-    const buffer = this.context.createBuffer(1, sampleCount, TTS_SAMPLE_RATE);
+    const buffer = this.context.createBuffer(1, sampleCount, this.sampleRate);
     const channel = buffer.getChannelData(0);
     for (let index = 0; index < sampleCount; index += 1) {
       channel[index] = view.getInt16(index * 2, true) / 0x8000;
@@ -190,7 +234,10 @@ class PcmPlayer {
     source.start(startAt);
     this.nextStart = startAt + buffer.duration;
     this.sources.add(source);
-    source.onended = () => this.sources.delete(source);
+    source.onended = () => {
+      this.sources.delete(source);
+      this.resolveIdleIfNeeded();
+    };
   }
 
   stop() {
@@ -204,6 +251,14 @@ class PcmPlayer {
     }
     this.sources.clear();
     this.nextStart = this.context?.currentTime || 0;
+    this.streamComplete = true;
+    this.resolveIdleIfNeeded();
+  }
+
+  resolveIdleIfNeeded() {
+    if (!this.streamComplete || this.sources.size) return;
+    const waiters = this.idleWaiters.splice(0);
+    for (const resolve of waiters) resolve();
   }
 }
 
@@ -217,8 +272,12 @@ class VoiceController {
     this.speechDetected = false;
     this.recordingTimer = null;
     this.ttsSocket = null;
+    this.ttsAbortController = null;
+    this.wavAudio = null;
+    this.wavUrl = null;
     this.speechGeneration = 0;
     this.player = new PcmPlayer();
+    this.gptSovitsPlayer = new PcmPlayer({ sampleRate: GPT_SOVITS_SAMPLE_RATE });
     this.asr = new StreamingAsr(
       callbacks.onPartialTranscript,
       (text) => {
@@ -230,7 +289,9 @@ class VoiceController {
   }
 
   setLanguage(targetLanguage) {
-    const normalized = targetLanguage === "ja" ? "ja" : "en";
+    const normalized = ["en", "ja", "yue"].includes(targetLanguage)
+      ? targetLanguage
+      : "en";
     if (normalized === this.targetLanguage) return;
     if (this.recording) this.finishRecording();
     this.targetLanguage = normalized;
@@ -238,6 +299,14 @@ class VoiceController {
     this.callbacks.onState(
       "ready",
       `已切换为${targetLanguageConfig[normalized].displayNameZh}语音输入`,
+    );
+  }
+
+  setRecognitionContext({ storyId, beatId } = {}) {
+    this.storyId = storyId || null;
+    this.beatId = beatId || null;
+    this.asr.setRecognitionContext(
+      cantoneseRecognitionContext(this.storyId, this.beatId),
     );
   }
 
@@ -315,6 +384,10 @@ class VoiceController {
     if (!text || !profile?.voiceId) return;
     const generation = ++this.speechGeneration;
     this.interruptSpeech(false);
+    if (isGptSovitsProfile(profile)) {
+      await this.speakGptSovits(text, profile, displayName, generation);
+      return;
+    }
     try {
       await this.player.resume();
       this.callbacks.onState("speaking", `${displayName} 正在说话…`);
@@ -392,11 +465,87 @@ class VoiceController {
     }
   }
 
+  async speakGptSovits(text, profile, displayName, generation) {
+    const controller = new AbortController();
+    this.ttsAbortController = controller;
+    try {
+      await this.gptSovitsPlayer.resume();
+      this.gptSovitsPlayer.begin();
+      this.callbacks.onState("speaking", `${displayName} 正在生成粤语语音…`);
+      const response = await fetch(`${config.apiBaseUrl}/api/tts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildGptSovitsRequest(text, profile)),
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.message || payload.error || "粤语语音暂不可用");
+      }
+      if (!response.body) throw new Error("粤语语音没有返回音频流");
+      let playbackStarted = false;
+      const decoder = new WavPcmStreamDecoder({
+        onPcm: (pcm) => {
+          if (generation !== this.speechGeneration) return;
+          if (!playbackStarted) {
+            playbackStarted = true;
+            this.callbacks.onState("speaking", `${displayName} 正在说话…`);
+          }
+          this.gptSovitsPlayer.enqueue(pcm);
+        },
+      });
+      const reader = response.body.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (generation !== this.speechGeneration) {
+          await reader.cancel();
+          return;
+        }
+        if (value?.byteLength) decoder.push(value);
+      }
+      decoder.complete();
+      this.gptSovitsPlayer.complete();
+      await this.gptSovitsPlayer.waitForEnd();
+      if (generation === this.speechGeneration) {
+        this.callbacks.onState("ready", "可以继续说话");
+      }
+    } catch (error) {
+      if (controller.signal.aborted || generation !== this.speechGeneration) return;
+      this.gptSovitsPlayer.stop();
+      this.callbacks.onError(
+        new Error(
+          `${error instanceof Error ? error.message : String(error)}；粤语语音已跳过`,
+        ),
+      );
+    } finally {
+      if (this.ttsAbortController === controller) this.ttsAbortController = null;
+      if (this.wavAudio && this.wavAudio.ended) this.wavAudio = null;
+      if (this.wavUrl && (!this.wavAudio || this.wavAudio.ended)) {
+        URL.revokeObjectURL(this.wavUrl);
+        this.wavUrl = null;
+      }
+    }
+  }
+
   interruptSpeech(incrementGeneration = true) {
     if (incrementGeneration) this.speechGeneration += 1;
     this.ttsSocket?.close();
     this.ttsSocket = null;
+    this.ttsAbortController?.abort();
+    this.ttsAbortController = null;
+    if (this.wavAudio) {
+      this.wavAudio.pause();
+      this.wavAudio.removeAttribute("src");
+      this.wavAudio.load();
+      this.wavAudio = null;
+    }
+    if (this.wavUrl) {
+      URL.revokeObjectURL(this.wavUrl);
+      this.wavUrl = null;
+    }
     this.player.stop();
+    this.gptSovitsPlayer.stop();
   }
 }
 
@@ -429,7 +578,12 @@ const voice = new VoiceController({
     if (transcript) transcript.textContent = text || "正在识别…";
   },
   onFinalTranscript: async (text) => {
-    const finalText = text || rawPartial;
+    const rawFinalText = text || rawPartial;
+    const finalText = correctCantoneseMtrTranscript(
+      rawFinalText,
+      voice.storyId,
+      voice.beatId,
+    );
     rawPartial = "";
     const languageName = targetLanguageConfig[voice.targetLanguage].displayNameZh;
     if (transcript) transcript.textContent = finalText || `（没有识别到有效的${languageName}表达）`;

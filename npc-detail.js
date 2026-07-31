@@ -63,22 +63,22 @@ const fallbackProfiles = {
   mike: {
     id: "mike",
     displayName: "Mike",
-    status: "comingSoon",
-    role: "Customer support coordinator at a local office-supply company",
-    roleZh: "本地办公用品公司的客户支持协调员",
+    status: "available",
+    role: "Station staff member at Tin Hau MTR station in Hong Kong",
+    roleZh: "香港天后港铁站的车站工作人员",
     personality:
       "Approachable, patient, practical, and quietly humorous. Mike listens carefully and asks straightforward questions.",
     relationship:
-      "A friendly recurring acquaintance who remains professional and respects personal boundaries.",
+      "The station staff member helping you travel from Tin Hau to Central.",
     speakingStyle:
-      "Natural conversational English with short to medium-length sentences and a warm tone.",
+      "Short, clear Traditional Chinese sentences in controlled natural Cantonese.",
     personalityZh:
       "随和、耐心、务实，带有低调的幽默感。Mike 会认真倾听，并提出直接的问题。",
-    relationshipZh:
-      "Mike 是你经常接触的友好熟人，保持专业，也尊重个人边界。",
-    speakingStyleZh: "使用温暖自然的日常英语，句子长度较短或适中。",
+    relationshipZh: "Mike 正在协助你确认从天后站前往中环的固定路线。",
+    speakingStyleZh: "使用繁体中文、短句和常见词语，以自然但受控的香港粤语沟通。",
     selectImage: "./npc/mike/Mike_00_grid_select.png",
     accent: "#f2a05f",
+    storyTitle: "在港铁站问路",
   },
   mary: {
     id: "mary",
