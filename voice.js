@@ -365,7 +365,7 @@ class VoiceController {
     this.recording = true;
     this.asr.begin();
     this.callbacks.onPartialTranscript("");
-    this.callbacks.onState("recording", "正在聆听…再次点击结束");
+    this.callbacks.onState("recording", "正在聆听…再次点击麦克风或按空格结束");
     this.recordingTimer = setTimeout(() => this.finishRecording(), MAX_RECORDING_MS);
   }
 
