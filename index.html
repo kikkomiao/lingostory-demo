@@ -242,21 +242,23 @@
           </section>
 
           <section id="transcriptBox" class="transcript-box">
-            <span>实时转写</span>
+            <div class="transcript-heading">
+              <span>实时转写</span>
+              <button
+                id="conversationPanel"
+                class="conversation-trigger"
+                type="button"
+                aria-haspopup="dialog"
+                aria-controls="conversationModal"
+                aria-expanded="false"
+                disabled
+              >
+                <span>完整对话</span>
+                <small id="conversationCount">0 条</small>
+              </button>
+            </div>
             <p id="transcript">你的表达会出现在这里…</p>
           </section>
-
-          <button
-            id="conversationPanel"
-            class="conversation-trigger hidden"
-            type="button"
-            aria-haspopup="dialog"
-            aria-controls="conversationModal"
-            aria-expanded="false"
-          >
-            <span>完整对话</span>
-            <small id="conversationCount">0 条</small>
-          </button>
 
           <form id="turnForm" class="turn-form hidden">
             <label for="turnInput">用自己的方式回应</label>

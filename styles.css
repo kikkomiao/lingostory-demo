@@ -1377,20 +1377,25 @@ a:focus-visible {
 .transcript-box p { margin: 4px 0 0; color: #554f47; font: 650 12px/1.45 "Segoe UI", sans-serif; }
 .transcript-box.processing { border-style: solid; border-color: var(--red); background: #ffe9ed; }
 
-.conversation-trigger {
-  width: 100%;
-  min-height: 48px;
+.transcript-heading {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 12px;
-  padding: 11px 13px;
-  border: 2px solid var(--ink);
-  border-radius: 13px 17px 12px 15px;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.conversation-trigger {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 8px;
+  border: 1.5px solid var(--ink);
+  border-radius: 8px 11px 7px 10px;
   background: #d7ebff;
-  box-shadow: 2px 3px 0 var(--ink);
+  box-shadow: 1px 2px 0 var(--ink);
   color: var(--ink);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 950;
   cursor: pointer;
   transition: .16s ease;
@@ -1400,20 +1405,31 @@ a:focus-visible {
   content: "+";
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 17px;
+  height: 17px;
   flex: 0 0 auto;
-  border: 2px solid var(--ink);
-  border-radius: 7px 9px 6px 8px;
+  border: 1.5px solid var(--ink);
+  border-radius: 5px 7px 4px 6px;
   background: white;
-  box-shadow: 1px 1px 0 var(--ink);
-  font-size: 16px;
+  font-size: 12px;
   line-height: 1;
 }
 
-.conversation-trigger span { margin-right: auto; }
+.conversation-trigger span { color: var(--ink); font-size: 9px; }
 .conversation-trigger small { color: var(--muted); font-size: 8px; }
 .conversation-trigger:hover { background: #c5e1ff; box-shadow: 1px 2px 0 var(--ink); transform: translate(1px, 1px); }
+.conversation-trigger:disabled {
+  border-color: #aaa298;
+  background: #e9e3d8;
+  box-shadow: none;
+  color: #8a8277;
+  cursor: default;
+  opacity: .72;
+}
+.conversation-trigger:disabled::before { content: "−"; border-color: #aaa298; color: #8a8277; }
+.conversation-trigger:disabled span,
+.conversation-trigger:disabled small { color: #8a8277; }
+.conversation-trigger:disabled:hover { background: #e9e3d8; box-shadow: none; transform: none; }
 
 .conversation-modal-open { overflow: hidden; }
 

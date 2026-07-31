@@ -669,7 +669,7 @@ function renderConversation(session, npcReply = null, userText = "") {
     $("endingConversationCount"),
     entries,
   );
-  $("conversationPanel").classList.toggle("hidden", entries.length === 0);
+  $("conversationPanel").disabled = entries.length === 0;
   $("endingConversationPanel").classList.toggle(
     "hidden",
     entries.length === 0 || session.phase !== "ended",
@@ -678,7 +678,7 @@ function renderConversation(session, npcReply = null, userText = "") {
 }
 
 function openConversationModal() {
-  if ($("conversationPanel").classList.contains("hidden")) return;
+  if ($("conversationPanel").disabled) return;
   conversationModalTrigger = document.activeElement;
   $("conversationModal").classList.remove("hidden");
   $("conversationPanel").setAttribute("aria-expanded", "true");
@@ -1450,7 +1450,7 @@ function resetStoryState() {
   $("endingOverlay").querySelector(".ending-card").classList.remove("story-only");
   $("liveReviewNotice").classList.add("hidden");
   closeConversationModal({ restoreFocus: false });
-  $("conversationPanel").classList.add("hidden");
+  $("conversationPanel").disabled = true;
   $("conversationList").replaceChildren();
   $("conversationCount").textContent = "0 条";
   $("endingConversationPanel").classList.add("hidden");
