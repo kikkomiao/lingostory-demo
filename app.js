@@ -506,6 +506,7 @@ function normalizeApiNpc(apiNpc, story, presentationKey) {
     supportedEmotions: Array.isArray(apiNpc.supportedEmotions)
       ? [...new Set(apiNpc.supportedEmotions.map(normalizeEmotion))]
       : Object.keys(presentation.emotionAssets),
+    voiceProfile: profile.voiceProfile || apiNpc.voiceProfile || null,
   };
 }
 
@@ -803,7 +804,7 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   $("timerValue").textContent = "∞";
   $("timer").style.setProperty("--progress", "1");
   $("timer").querySelector("span").textContent = "自由说";
-  $("voiceStatus").textContent = "文本回合已接入 · 语音将在 P2 开放";
+  $("voiceStatus").textContent = "点击麦克风说话，或使用文本输入";
   $("turnForm").classList.remove("hidden");
   $("keyboardTip").classList.add("hidden");
   hideTurnError();
@@ -892,9 +893,27 @@ async function submitLiveTurn(text, existingTurn = null) {
     $("turnInput").value = "";
     renderLiveSession(payload.session || payload, payload.npc || null, normalizedText);
     $("voiceStatus").textContent = controllerFeedback(payload.controller);
+    const npcReply = payload.npc || null;
+    if (npcReply?.utterance) {
+      window.dispatchEvent(
+        new CustomEvent("lingostory:npc-reply", {
+          detail: {
+            text: npcReply.utterance,
+            displayName: npcReply.name || activeNpc.name,
+            npcId: activeNpc.id,
+            voiceProfile:
+              npcReply.voiceProfile ||
+              payload.session?.activeNpc?.voiceProfile ||
+              activeNpc.voiceProfile,
+          },
+        }),
+      );
+    }
+    return payload;
   } catch (error) {
     showTurnError(error);
     $("voiceStatus").textContent = "发送未成功，剧情没有继续";
+    return null;
   } finally {
     setTurnBusy(false);
   }
@@ -1163,7 +1182,7 @@ function simulateListening() {
   }, 1600);
 }
 
-function choosePath(path, timedOut = false) {
+function choosePath(path, timedOut = false, spokenText = "") {
   if (round < 0 || round >= rounds.length) return;
   clearInterval(timerId);
   listening = false;
@@ -1175,8 +1194,9 @@ function choosePath(path, timedOut = false) {
   setPathDisabled(true);
 
   const answer = rounds[round].replies[path];
-  $("transcript").textContent = timedOut ? "（没有识别到有效表达）" : answer.user;
-  history.push({ round, path, line: timedOut ? "（没有识别到有效表达）" : answer.user });
+  const userLine = timedOut ? "（没有识别到有效表达）" : spokenText || answer.user;
+  $("transcript").textContent = userLine;
+  history.push({ round, path, line: userLine });
 
   setTimeout(() => {
     $("speakerName").textContent = activeNpc.name;
@@ -1189,6 +1209,16 @@ function choosePath(path, timedOut = false) {
     $("transcriptBox").classList.remove("processing");
     setCharacter(answer.mood);
     $("progressFill").style.width = `${((round + 1) / 4) * 100}%`;
+    window.dispatchEvent(
+      new CustomEvent("lingostory:npc-reply", {
+        detail: {
+          text: answer.reply,
+          displayName: activeNpc.name,
+          npcId: activeNpc.id,
+          voiceProfile: activeNpc.voiceProfile,
+        },
+      }),
+    );
 
     setTimeout(() => {
       if (round < rounds.length - 1) loadRound(round + 1);
@@ -1459,8 +1489,7 @@ function resetStoryState() {
   $("subtitle").textContent = "你刚坐下就发现——两份午饭拿反了。老板那份，已经被你打开过。";
   $("translation").textContent = `而 ${activeNpc.name} 正走向他的办公室。`;
   $("speakerName").textContent = "旁白";
-  $("voiceStatus").textContent =
-    appMode === "live" ? "文本回合已接入 · 语音将在 P2 开放" : "点击麦克风，或按住空格说话";
+  $("voiceStatus").textContent = "点击麦克风，或按空格开始说话";
   $("transcript").textContent = "你的表达会出现在这里…";
   $("transcriptBox").classList.remove("processing");
   $("translation").classList.remove("hidden");

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#2867df" />
+    <meta name="description" content="LingoStory 全屏自动宣传演示" />
+    <title>LingoStory | 把外语练进真实生活</title>
+    <link rel="preload" href="assets/marketing/hero-office-task.jpg" as="image" />
+    <link rel="stylesheet" href="landing.css" />
+  </head>
+  <body>
+    <main class="kiosk" aria-label="LingoStory 自动宣传演示">
+      <header class="kiosk-header">
+        <img
+          class="kiosk-logo"
+          src="assets/brand/lingostory-wordmark-ink.png"
+          alt="LingoStory"
+          width="1175"
+          height="259"
+        />
+        <div class="now-playing" aria-live="polite">
+          <span>AUTO STORY</span>
+          <strong data-counter>01 / 05</strong>
+        </div>
+        <button class="play-toggle" type="button" aria-pressed="false" aria-label="暂停自动播放">
+          <span class="pause-icon" aria-hidden="true"></span>
+          <span data-play-label>自动播放中</span>
+        </button>
+      </header>
+
+      <div class="slides" data-slides>
+        <section class="slide slide-opening is-active" data-slide="0" data-ghost="SPEAK" aria-hidden="false">
+          <div class="opening-copy">
+            <div class="micro-label">REAL-LIFE LANGUAGE WORLD</div>
+            <h1><span>把外语，</span><em>练进真实生活。</em></h1>
+            <p>不是背台词。进入剧情，亲自开口，让世界回应你。</p>
+            <div class="language-ticker" aria-label="多语言问候">
+              <span>HELLO!</span><span>¡Hola!</span><span>Bonjour!</span><span>こんにちは!</span><span>안녕하세요!</span>
+            </div>
+          </div>
+
+          <div class="opening-scene">
+            <img src="assets/marketing/hero-office-task.jpg" alt="办公室里的外语沟通任务" width="1536" height="1024" />
+            <div class="floating-task">
+              <small>MISSION 01</small>
+              <strong>在他进门前<br />叫住 Cyrus</strong>
+              <div class="timer-ring"><b>08</b><span>SEC</span></div>
+            </div>
+            <div class="voice-bubble voice-main">
+              <i class="mic-symbol" aria-hidden="true"></i>
+              <span>Wait, Cyrus.<br />Please don't go in yet.</span>
+            </div>
+            <div class="scene-badge badge-one">NPC 正在离开</div>
+            <div class="scene-badge badge-two">你的话会改变下一幕</div>
+          </div>
+
+          <div class="opening-decor decor-flower" aria-hidden="true">✿</div>
+          <div class="opening-decor decor-arrow" aria-hidden="true">↗</div>
+          <div class="opening-decor decor-star" aria-hidden="true">✦</div>
+        </section>
+
+        <section class="slide slide-response" data-slide="1" data-ghost="LISTEN" aria-hidden="true">
+          <div class="response-title">
+            <div class="micro-label blue-label">SPEAK. BE UNDERSTOOD. MOVE ON.</div>
+            <h2>你说一句，<br />NPC <em>真的听懂。</em></h2>
+            <p>自由表达，不用照着标准答案念。</p>
+          </div>
+
+          <div class="response-canvas">
+            <div class="speaker-card">
+              <div class="speaker-avatar" aria-hidden="true"><i></i><i></i><b></b></div>
+              <span>YOU</span>
+              <div class="waveform" aria-hidden="true">
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              </div>
+            </div>
+
+            <div class="live-transcript" data-demo-transcript>
+              <small>LIVE TRANSCRIPT</small>
+              <strong>Wait, Cyrus. Please don't go in yet.</strong>
+              <span>ENGLISH / LIVE</span>
+            </div>
+
+            <div class="understanding-arrow" aria-hidden="true"><span></span><b>理解意图</b></div>
+
+            <div class="npc-reaction is-success" data-npc-reaction>
+              <div class="reaction-face" aria-hidden="true"><span></span><i></i><i></i><b></b></div>
+              <small>CYRUS / NPC</small>
+              <blockquote data-demo-reply>Oh, sure. What's up?</blockquote>
+              <div class="reaction-result" data-demo-result>他停下来了，任务推进</div>
+            </div>
+
+            <div class="language-stack" aria-label="自动切换的英文表达示例">
+              <button type="button" class="is-active" data-example="0">01</button>
+              <button type="button" data-example="1">02</button>
+              <button type="button" data-example="2">03</button>
+              <button type="button" data-example="3">04</button>
+            </div>
+            <div class="language-confetti" aria-hidden="true"><span>ES</span><span>FR</span><span>JP</span><span>KR</span></div>
+          </div>
+
+          <div class="response-footer">
+            <span>自由开口</span><i>→</i><span>NPC 理解</span><i>→</i><span>剧情改变</span>
+          </div>
+        </section>
+
+        <section class="slide slide-mechanism" data-slide="2" data-ghost="DO IT" aria-hidden="true">
+          <div class="mechanism-top">
+            <div>
+              <div class="micro-label pink-label">THE DIFFERENCE</div>
+              <h2>不是判断<br />“说得对不对”</h2>
+            </div>
+            <div class="not-equal" aria-hidden="true">≠</div>
+            <div>
+              <h2>而是判断<br /><em>“事情办成了吗”</em></h2>
+            </div>
+          </div>
+
+          <div class="mechanism-grid">
+            <article class="mechanism-card card-listen">
+              <span class="card-number">A</span>
+              <h3>NPC 听懂了吗？</h3>
+              <p>识别意图、对象、时间和行动。</p>
+              <div class="mini-dialogue">
+                <span>“Could you hold the door?”</span>
+                <strong>Got it!</strong>
+              </div>
+            </article>
+
+            <article class="mechanism-card card-state">
+              <span class="card-number">B</span>
+              <h3>任务状态改变了吗？</h3>
+              <p>人物、道具和世界状态一起更新。</p>
+              <div class="state-machine" aria-label="任务状态变化">
+                <span>门要关了</span><i></i><span>NPC 停下</span><i></i><span>任务完成</span>
+              </div>
+            </article>
+
+            <article class="mechanism-card card-consequence">
+              <span class="card-number">C</span>
+              <h3>误会会有后果吗？</h3>
+              <p>说不清楚，故事不会假装听懂。</p>
+              <img src="assets/marketing/story-branches.jpg" alt="一句表达产生不同剧情结果" width="1536" height="1024" loading="lazy" />
+            </article>
+          </div>
+
+          <div class="mechanism-ribbon">
+            <span>任务结果优先</span><span>语法反馈随后</span><span>沟通能力真实发生</span>
+          </div>
+        </section>
+
+        <section class="slide slide-world" data-slide="3" data-ghost="WORLD" aria-hidden="true">
+          <div class="world-head">
+            <div>
+              <div class="micro-label green-label">ENGLISH IN THE REAL WORLD</div>
+              <h2>一个世界，<br /><em>很多真实任务。</em></h2>
+            </div>
+            <p>办公室、咖啡店、航班、校园。<br />每个角色都带着一段必须开口完成的故事。</p>
+          </div>
+
+          <div class="world-map">
+            <img src="assets/marketing/everyday-world.jpg" alt="多个生活场景组成的外语学习世界" width="1536" height="1024" loading="lazy" />
+            <div class="world-hotspot hotspot-office is-active" data-hotspot="0"><b>EN</b><span>办公室</span><small>解释突发状况</small></div>
+            <div class="world-hotspot hotspot-cafe" data-hotspot="1"><b>FR</b><span>Café</span><small>Commander un café</small></div>
+            <div class="world-hotspot hotspot-flight" data-hotspot="2"><b>ES</b><span>Vuelo</span><small>Cambiar de asiento</small></div>
+            <div class="world-hotspot hotspot-school" data-hotspot="3"><b>JP</b><span>学校</span><small>意見を伝える</small></div>
+          </div>
+
+          <div class="world-marquee" aria-hidden="true">
+            <div>
+              <span>ASK FOR HELP</span><i>✿</i><span>EXPLAIN</span><i>✦</i><span>MAKE A CHOICE</span><i>●</i><small>Hola</small><small>Bonjour</small><small>こんにちは</small>
+              <span>ASK FOR HELP</span><i>✿</i><span>EXPLAIN</span><i>✦</i><span>MAKE A CHOICE</span><i>●</i><small>안녕하세요</small><small>Ciao</small><small>你好</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide slide-review" data-slide="4" data-ghost="GROW" aria-hidden="true">
+          <div class="review-title">
+            <div class="micro-label red-label">FINISH FIRST. REVIEW AFTER.</div>
+            <h2>交流时不打断，<br /><em>结束后再精讲。</em></h2>
+            <p>先像真实生活一样把话说完，再集中复盘表达质量。</p>
+          </div>
+
+          <div class="review-dashboard">
+            <div class="story-result">
+              <span>STORY COMPLETE</span>
+              <strong>午饭保住了！</strong>
+              <p>你的意思被理解，Cyrus 接受了解决方案。</p>
+              <div class="score-orbit"><b>82</b><small>沟通结果</small></div>
+            </div>
+
+            <div class="trend-card">
+              <div class="trend-heading"><span>四轮表达趋势</span><b>持续进步</b></div>
+              <svg viewBox="0 0 580 210" role="img" aria-label="四轮表达表现逐步提升">
+                <path d="M25 165 C110 160 118 70 205 90 S335 145 390 85 S485 35 555 42" />
+                <circle cx="25" cy="165" r="8" /><circle cx="205" cy="90" r="8" /><circle cx="390" cy="85" r="8" /><circle cx="555" cy="42" r="8" />
+              </svg>
+              <div class="trend-labels"><span>叫住对方</span><span>解释问题</span><span>提出方案</span><span>确认收尾</span></div>
+            </div>
+
+            <div class="upgrade-card">
+              <span>更自然的说法</span>
+              <del>Something is wrong.</del>
+              <strong>Wait, Cyrus.<br />Please don't go in yet.</strong>
+              <div class="language-notes"><i>语法 ✓</i><i>用词 ↑</i><i>地道度 ↑</i></div>
+            </div>
+          </div>
+
+          <div class="review-close">
+            <img src="assets/brand/lingostory-wordmark-white.png" alt="LingoStory" width="1175" height="259" />
+            <strong>用外语，把事情办成。</strong>
+            <span>THE STORY CONTINUES...</span>
+          </div>
+        </section>
+      </div>
+
+      <div class="scene-transition" data-scene-transition aria-hidden="true">
+        <i></i><i></i><i></i><i></i>
+        <strong data-transition-word>SPEAK!</strong>
+      </div>
+
+      <footer class="kiosk-progress" aria-label="自动播放进度">
+        <div class="progress-track"><i data-progress-fill></i></div>
+        <div class="progress-dots" role="tablist" aria-label="选择演示场景">
+          <button type="button" class="is-active" data-go="0" aria-label="第一幕" aria-selected="true"></button>
+          <button type="button" data-go="1" aria-label="第二幕" aria-selected="false"></button>
+          <button type="button" data-go="2" aria-label="第三幕" aria-selected="false"></button>
+          <button type="button" data-go="3" aria-label="第四幕" aria-selected="false"></button>
+          <button type="button" data-go="4" aria-label="第五幕" aria-selected="false"></button>
+        </div>
+        <span data-slide-name>把外语练进真实生活</span>
+      </footer>
+    </main>
+
+    <script src="landing.js" defer></script>
+  </body>
+</html>

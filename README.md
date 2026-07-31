@@ -74,6 +74,33 @@ node scripts/fixture-server.mjs
 同时需要由后端为前端域名配置 CORS；更推荐在同一域名下反向代理
 `/api/*`。
 
+需要联调真实语音链路时，先启动 LingoStory 后端（默认
+`http://127.0.0.1:8790`），再运行：
+
+```bash
+npm run dev
+```
+
+打开 `http://127.0.0.1:8000`。开发服务器会把同源 `/api` 代理到后端，避免跨域问题。
+如后端地址不同，可设置 `LINGOSTORY_API_TARGET`。直接双击 `index.html` 仍可进入离线 Demo，
+但浏览器可能因安全策略限制麦克风或 VAD 资源加载。
+
+也可以使用仓库内置的固定数据服务检查非语音交互：
+
+```bash
+node scripts/fixture-server.mjs
+```
+
+然后打开 `http://127.0.0.1:18892/`。
+
+## 真实语音链路（2026-07-31）
+
+- 麦克风通过 Silero VAD 获取 16kHz 单声道语音帧，并保留 300ms pre-roll。
+- Qwen3-ASR WebSocket 流式转写，最终英文文本复用文本输入的 `/turn` 接口。
+- 大模型返回 NPC 回复后，按角色 `voiceProfile` 调用 Qwen3-TTS WebSocket。
+- TTS 下行 PCM 以 24kHz 单声道流式排队播放；再次点击麦克风会中断当前播报。
+- ASR/TTS 地址可通过 `window.LINGOSTORY_VOICE_CONFIG` 覆盖。
+
 ## 主要文件
 
 - `index.html`：页面结构与真实前端入口

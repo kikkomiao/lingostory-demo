@@ -1,0 +1,9 @@
+{
+  "name": "lingostory-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node dev-server.mjs",
+    "check": "node --check app.js && node --check voice.js && node --check dev-server.mjs"
+  }
+}
