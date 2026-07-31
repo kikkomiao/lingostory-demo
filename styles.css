@@ -638,29 +638,6 @@ a:focus-visible {
   transform: none;
 }
 
-.npc-library-footer {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin-top: 22px;
-  padding: 11px 14px;
-  border: 2px dashed var(--ink);
-  border-radius: 13px 17px 12px 15px;
-  background: #e5f1ce;
-}
-
-.npc-library-footer > span {
-  color: var(--blue);
-  font-size: 20px;
-}
-
-.npc-library-footer p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 700;
-}
-
 .intro-card,
 .ending-card {
   position: relative;
@@ -1758,7 +1735,6 @@ kbd {
   .npc-portrait { min-height: 245px; border-right: 0; border-bottom: 3px solid var(--ink); }
   .npc-portrait img { width: 72%; height: 235px; }
   .npc-card-body { min-height: 280px; }
-  .npc-library-footer { align-items: flex-start; }
   .turn-input-row { grid-template-columns: 1fr; }
   .turn-input-row button { min-height: 42px; }
   .turn-form-meta span:last-child { display: none; }

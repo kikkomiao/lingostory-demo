@@ -1055,11 +1055,7 @@ function renderNpcLibrary() {
         <span class="npc-role">${escapeHtml(npc.role)}</span>
         <h2>${escapeHtml(npc.name)}</h2>
         ${isPlayable ? `<span class="npc-story-level">${escapeHtml(npc.level)}</span>` : ""}
-        <span class="npc-story-label">${
-          isPlayable
-            ? `专属剧情 · ${escapeHtml(npc.episode.replace("LINGOSTORY · ", ""))}`
-            : "专属剧情 · 待公布"
-        }</span>
+        ${isPlayable ? "" : '<span class="npc-story-label">剧情待公布</span>'}
         <p class="npc-story-title">${escapeHtml(npc.storyTitle)}</p>
         <div class="npc-card-actions">
           <a class="npc-details" href="${escapeHtml(detailHref)}">查看角色档案 <span>→</span></a>
@@ -1079,7 +1075,6 @@ function renderNpcLibrary() {
 
 function applyActiveNpc() {
   $("characterName").textContent = activeNpc.name;
-  $("storyEpisode").textContent = activeNpc.episode;
   $("storyTitle").textContent = activeNpc.storyTitle;
   $("storyDescription").textContent = activeNpc.storyDescription;
   $("estimatedMinutes").textContent = `约 ${activeNpc.estimatedMinutes || 3} 分钟`;
