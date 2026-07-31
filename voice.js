@@ -5,6 +5,7 @@ import {
   targetLanguageConfig,
 } from "./transcript.js";
 import {
+  backendTtsErrorMessage,
   buildTtsSessionConfig,
   buildTtsTextInput,
   buildGptSovitsRequest,
@@ -480,7 +481,7 @@ class VoiceController {
       });
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.message || payload.error || "粤语语音暂不可用");
+        throw new Error(backendTtsErrorMessage(payload, response.status));
       }
       if (!response.body) throw new Error("粤语语音没有返回音频流");
       let playbackStarted = false;

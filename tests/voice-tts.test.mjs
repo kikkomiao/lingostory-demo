@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  backendTtsErrorMessage,
   buildTtsSessionConfig,
   buildTtsTextInput,
   buildGptSovitsRequest,
@@ -54,6 +55,15 @@ test("routes the fixed Mike profile to the backend GPT-SoVITS contract", () => {
     voiceId: "mike-yue-v1",
     text: "好，資料正確。",
   });
+});
+
+test("localizes backend Cantonese TTS errors", () => {
+  assert.equal(
+    backendTtsErrorMessage({ code: "TTS_UNAVAILABLE", error: "Cantonese voice is not configured" }, 503),
+    "粤语语音服务尚未配置",
+  );
+  assert.equal(backendTtsErrorMessage({ code: "TTS_TIMEOUT" }, 504), "粤语语音服务响应超时");
+  assert.equal(backendTtsErrorMessage({}, 503), "粤语语音服务暂时不可用（503）");
 });
 
 test("waits for 400ms of PCM before starting and streams later chunks", () => {

@@ -32,6 +32,15 @@ export function buildGptSovitsRequest(text, profile) {
   };
 }
 
+export function backendTtsErrorMessage(payload, status) {
+  const messages = {
+    TTS_UNAVAILABLE: "粤语语音服务尚未配置",
+    TTS_TIMEOUT: "粤语语音服务响应超时",
+    TTS_UPSTREAM_ERROR: "粤语语音服务暂时不可用",
+  };
+  return messages[payload?.code] || payload?.message || payload?.error || `粤语语音服务暂时不可用（${status}）`;
+}
+
 export class WavPcmStreamDecoder {
   constructor({ onPcm, expectedSampleRate = GPT_SOVITS_SAMPLE_RATE }) {
     this.onPcm = onPcm;
