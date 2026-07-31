@@ -499,7 +499,7 @@ function normalizeApiNpc(apiNpc, story, presentationKey) {
       (hasPublishedStory
         ? `开口推动剧情！在 ${estimatedMinutes} 分钟的自然对话中完成这次沟通挑战。`
         : `${apiNpc.displayName || profile.displayName || presentationKey} 的专属故事正在编排，确定后即可开放。`),
-    level: canStartStory ? `${level} · 真实剧情` : "故事待定",
+    level: canStartStory ? level : "故事待定",
     accent: presentation.accent,
     selectImage: presentation.selectImage,
     emotionAssets: presentation.emotionAssets,
