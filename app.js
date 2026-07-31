@@ -2243,21 +2243,20 @@ const forceGameEntry = new URLSearchParams(window.location.search).get("welcome"
 if ((REQUESTED_NPC_ID || OPEN_LIBRARY_DIRECTLY) && !forceGameEntry) {
   gameEntry.classList.add("hidden");
   document.body.classList.remove("game-entry-open");
-} else {
-  gameEntryTrigger.addEventListener(
-    "click",
-    () => {
-      if (gameEntry.classList.contains("is-transitioning")) return;
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      gameEntry.classList.add("is-transitioning");
-      window.setTimeout(() => {
-        gameEntry.classList.add("hidden");
-        gameEntry.classList.remove("is-transitioning");
-        document.body.classList.remove("game-entry-open");
-      }, reducedMotion ? 80 : 1100);
-    },
-  );
 }
+gameEntryTrigger.addEventListener(
+  "click",
+  () => {
+    if (gameEntry.classList.contains("is-transitioning")) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    gameEntry.classList.add("is-transitioning");
+    window.setTimeout(() => {
+      gameEntry.classList.add("hidden");
+      gameEntry.classList.remove("is-transitioning");
+      document.body.classList.remove("game-entry-open");
+    }, reducedMotion ? 80 : 1100);
+  },
+);
 
 $("apiRetryBtn").addEventListener("click", () => {
   userSelectedNpc = false;
