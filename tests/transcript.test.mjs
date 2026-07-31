@@ -53,7 +53,7 @@ test("accepts unlabelled Cantonese Han text without rewriting script", () => {
 
 test("provides beat-specific Cantonese MTR recognition context", () => {
   const context = cantoneseRecognitionContext(
-    "hong-kong-mtr-directions-mike-yue-v3",
+    "hong-kong-mtr-directions-mike-yue-v4",
     "ask_line",
   );
   assert.ok(context.hotwords.includes("港島線"));
@@ -61,7 +61,7 @@ test("provides beat-specific Cantonese MTR recognition context", () => {
 });
 
 test("corrects only safe MTR proper-name confusions and preserves numbers", () => {
-  const storyId = "hong-kong-mtr-directions-mike-yue-v3";
+  const storyId = "hong-kong-mtr-directions-mike-yue-v4";
   assert.equal(
     correctCantoneseMtrTranscript("我想去中還，係咪坐港島先？", storyId, "ask_line"),
     "我想去中環，係咪坐港島線？",

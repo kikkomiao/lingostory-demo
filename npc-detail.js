@@ -64,12 +64,12 @@ const fallbackProfiles = {
     id: "mike",
     displayName: "Mike",
     status: "available",
-    role: "Station staff member at Tin Hau MTR station in Hong Kong",
-    roleZh: "香港天后港铁站的车站工作人员",
+    role: "Friendly passerby near Tin Hau station in Hong Kong",
+    roleZh: "香港天后站友善路人",
     personality:
       "Approachable, patient, practical, and quietly humorous. Mike listens carefully and asks straightforward questions.",
     relationship:
-      "The station staff member helping you travel from Tin Hau to Central.",
+      "A friendly passerby helping you travel from Tin Hau to Central.",
     speakingStyle:
       "Short, clear Traditional Chinese sentences in controlled natural Cantonese.",
     personalityZh:
