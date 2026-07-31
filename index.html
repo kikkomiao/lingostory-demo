@@ -21,6 +21,18 @@
             重新连接
           </button>
           <button id="soundBtn" class="icon-btn" type="button" aria-label="切换声音">♪</button>
+          <button
+            id="conversationPanel"
+            class="soft-btn conversation-topbar"
+            type="button"
+            aria-haspopup="dialog"
+            aria-controls="conversationModal"
+            aria-expanded="false"
+            disabled
+          >
+            <span>完整对话</span>
+            <small id="conversationCount">0 条</small>
+          </button>
           <button id="restartBtn" class="soft-btn" type="button">选择 NPC</button>
         </div>
       </header>
@@ -283,18 +295,6 @@
 
           <div id="keyboardTip" class="keyboard-tip"><kbd>Space</kbd> 录音　<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 选择分支</div>
 
-          <button
-            id="conversationPanel"
-            class="conversation-trigger"
-            type="button"
-            aria-haspopup="dialog"
-            aria-controls="conversationModal"
-            aria-expanded="false"
-            disabled
-          >
-            <span>完整对话</span>
-            <small id="conversationCount">0 条</small>
-          </button>
         </aside>
       </section>
 

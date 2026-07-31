@@ -842,7 +842,7 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   $("crisisBadge").classList.toggle("visible", Boolean(replyStageText));
   $("timerValue").textContent = "";
   $("timer").style.setProperty("--progress", "1");
-  $("timer").querySelector(".timer-label").textContent = "自由说";
+  $("timer").querySelector(".timer-label").textContent = "";
   $("voiceStatus").textContent = "点击麦克风说话，或使用文本输入";
   $("turnInput").placeholder = isJapanese
     ? "日本語で言いたいことを入力してください…"
