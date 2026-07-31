@@ -350,11 +350,8 @@ function normalizeEmotion(emotionId) {
     : "neutral";
 }
 
-function setConnectionState(state, label, { retryable = false } = {}) {
-  const status = $("connectionStatus");
+function setConnectionState(state, _label, { retryable = false } = {}) {
   appMode = state;
-  status.dataset.state = state;
-  status.querySelector("span").textContent = label;
   $("apiRetryBtn").hidden = !retryable;
   document.querySelector(".experience").classList.toggle("live-mode", state === "live");
   $("introModeHint").textContent =
@@ -1050,13 +1047,14 @@ function renderNpcLibrary() {
     card.innerHTML = `
       <div class="npc-portrait">
         <span class="npc-availability">${
-          isPlayable ? (npc.source === "api" ? "真实剧情" : "演示可用") : "故事筹备中"
+          isPlayable ? (npc.source === "api" ? "可体验" : "演示可用") : "故事筹备中"
         }</span>
         <img src="${escapeHtml(npc.selectImage)}" alt="${escapeHtml(npc.name)} 的角色选择立绘" />
       </div>
       <div class="npc-card-body">
         <span class="npc-role">${escapeHtml(npc.role)}</span>
         <h2>${escapeHtml(npc.name)}</h2>
+        ${isPlayable ? `<span class="npc-story-level">${escapeHtml(npc.level)}</span>` : ""}
         <span class="npc-story-label">${
           isPlayable
             ? `专属剧情 · ${escapeHtml(npc.episode.replace("LINGOSTORY · ", ""))}`
@@ -1081,7 +1079,6 @@ function renderNpcLibrary() {
 
 function applyActiveNpc() {
   $("characterName").textContent = activeNpc.name;
-  $("levelLabel").textContent = activeNpc.level || "NPC 剧情库 · A2–B1";
   $("storyEpisode").textContent = activeNpc.episode;
   $("storyTitle").textContent = activeNpc.storyTitle;
   $("storyDescription").textContent = activeNpc.storyDescription;

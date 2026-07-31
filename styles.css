@@ -100,35 +100,6 @@ a:focus-visible {
   gap: 10px;
 }
 
-.connection-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 9px;
-  border: 2px solid var(--ink);
-  border-radius: 10px 13px 9px 12px;
-  background: var(--paper);
-  box-shadow: 2px 2px 0 var(--ink);
-  color: var(--muted);
-  font-size: 9px;
-  font-weight: 900;
-  white-space: nowrap;
-}
-
-.connection-status i {
-  width: 8px;
-  height: 8px;
-  border: 1px solid var(--ink);
-  border-radius: 50%;
-  background: var(--yellow);
-}
-
-.connection-status[data-state="connecting"] i { animation: pulse-dot 1s ease-in-out infinite; }
-.connection-status[data-state="live"] { background: #dff0c0; color: #155f34; }
-.connection-status[data-state="live"] i { background: var(--green); }
-.connection-status[data-state="demo"] { background: #fff0a9; color: #765000; }
-.connection-status[data-state="demo"] i { background: var(--yellow); }
-
 .connection-retry {
   min-height: 30px;
   padding: 4px 9px;
@@ -145,17 +116,6 @@ a:focus-visible {
   background: var(--yellow);
   box-shadow: 1px 1px 0 var(--ink);
   transform: translate(1px, 1px);
-}
-
-@keyframes pulse-dot {
-  50% { opacity: .3; transform: scale(.7); }
-}
-
-.level {
-  margin-right: 6px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
 }
 
 .icon-btn,
@@ -568,6 +528,19 @@ a:focus-visible {
   font-size: 29px;
   font-weight: 950;
   line-height: 1;
+}
+
+.npc-story-level {
+  align-self: flex-start;
+  margin-top: 9px;
+  padding: 4px 7px;
+  border: 2px solid var(--ink);
+  border-radius: 7px 9px 6px 8px;
+  background: #dff0c0;
+  color: var(--ink);
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: .45px;
 }
 
 .npc-story-label {
@@ -1720,7 +1693,6 @@ kbd {
 @media (max-width: 790px) {
   body { overflow: auto; }
   .topbar { min-height: 66px; }
-  .level { display: none; }
   .experience { grid-template-columns: 1fr; border-radius: 22px 27px 20px 25px; box-shadow: 5px 6px 0 var(--ink); }
   .stage { min-height: 67vh; }
   .control-panel { min-height: 650px; border-top: 4px solid var(--ink); border-left: 0; }
@@ -1746,8 +1718,6 @@ kbd {
   .library-count { display: flex; justify-content: center; gap: 7px; min-width: 0; justify-self: start; }
   .library-count strong { font-size: 20px; }
   .library-count span { margin-top: 0; }
-  .connection-status > span { display: none; }
-  .connection-status { padding: 7px; }
   .connection-retry { min-height: 32px; padding-inline: 7px; }
 }
 
