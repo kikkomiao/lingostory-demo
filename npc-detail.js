@@ -16,6 +16,13 @@ const fallbackProfiles = {
     speakingStyle:
       "Concise, calm, and professional. Uses plain English, asks focused questions, and gives clear decisions or next steps.",
     playerRole: "You are an employee speaking with your manager, Cyrus, during the workday.",
+    playerRoleZh: "你是一名员工，正在工作时间与经理 Cyrus 沟通。",
+    personalityZh:
+      "忙碌、果断、观察力强、公平且务实。他重视担当，但不会对诚实的错误反应过度，也有克制的幽默感。",
+    relationshipZh:
+      "Cyrus 是你的老板和拥有工作管理权的高级领导。他要求专业，但会公平评价你的表现。",
+    speakingStyleZh:
+      "表达简洁、冷静而专业。他使用清楚直接的英语，提出聚焦的问题，并给出明确决定或下一步。",
     selectImage: "./npc/cyrus/Cyrus_00_grid_select.png",
     accent: "#ffd95e",
     storyTitle: "拿错了老板的午饭",
@@ -31,6 +38,11 @@ const fallbackProfiles = {
       "A familiar, supportive library contact who maintains friendly professional boundaries.",
     speakingStyle:
       "Natural, friendly English with short-to-medium sentences and common vocabulary.",
+    personalityZh:
+      "温暖、细心、务实，带有温和的幽默感。她对错误很有耐心，也会提出经过思考的问题。",
+    relationshipZh:
+      "Kate 是你熟悉且可靠的图书馆联系人，态度友善，同时保持职业边界。",
+    speakingStyleZh: "使用自然友好的英语，常用词汇为主，句子长度较短或适中。",
     selectImage: "./npc/kate/Kate_00_grid_select.png",
     accent: "#f9b2cc",
   },
@@ -45,6 +57,11 @@ const fallbackProfiles = {
       "A friendly recurring acquaintance who remains professional and respects personal boundaries.",
     speakingStyle:
       "Natural conversational English with short to medium-length sentences and a warm tone.",
+    personalityZh:
+      "随和、耐心、务实，带有低调的幽默感。Mike 会认真倾听，并提出直接的问题。",
+    relationshipZh:
+      "Mike 是你经常接触的友好熟人，保持专业，也尊重个人边界。",
+    speakingStyleZh: "使用温暖自然的日常英语，句子长度较短或适中。",
     selectImage: "./npc/mike/Mike_00_grid_select.png",
     accent: "#abd9ff",
   },
@@ -59,6 +76,11 @@ const fallbackProfiles = {
       "A familiar, supportive community acquaintance who remains professionally appropriate.",
     speakingStyle:
       "Natural, friendly everyday English with clear sentences and moderate pacing.",
+    personalityZh:
+      "温暖、细心、务实，带有温和的幽默感。Mary 会认真倾听，也愿意承认错误。",
+    relationshipZh:
+      "Mary 是你熟悉且支持你的社区联系人，同时保持合适的职业边界。",
+    speakingStyleZh: "使用清晰、自然、友好的日常英语，语速适中。",
     selectImage: "./npc/mary/Mary_00_grid_select.png",
     accent: "#d7e8a5",
   },
@@ -73,6 +95,12 @@ const fallbackProfiles = {
       "A familiar community-center contact who remains friendly and professionally appropriate.",
     speakingStyle:
       "Clear conversational English with moderate pacing, common vocabulary, and concise explanations.",
+    personalityZh:
+      "温暖、细心、务实，带有温和的幽默感。Cassie 会认真倾听，也会耐心对待错误。",
+    relationshipZh:
+      "Cassie 是你熟悉的社区中心联系人，态度友好，同时保持职业关系。",
+    speakingStyleZh:
+      "使用清晰的日常英语，语速适中，以常见词汇和简洁解释为主。",
     selectImage: "./npc/cassie/Cassie_00_grid_select.png",
     accent: "#ffc992",
   },
@@ -110,12 +138,6 @@ async function apiRequest(path, timeoutMs = API_TIMEOUT_MS) {
   }
 }
 
-function setConnectionState(state, label) {
-  const status = $("detailConnectionStatus");
-  status.dataset.state = state;
-  status.querySelector("span").textContent = label;
-}
-
 function latestPublishedStory(stories, npcId) {
   return stories
     .filter(
@@ -145,7 +167,7 @@ function renderEmotionChips(emotions) {
   });
 }
 
-function renderProfile(npc, fallback, story, storyDetail, source) {
+function renderProfile(npc, fallback, story, storyDetail) {
   const profile = npc?.profile || npc;
   const id = npc?.id || profile?.npcId || fallback.id;
   const status = npc?.status === "active" ? "available" : npc?.status || fallback.status;
@@ -153,28 +175,33 @@ function renderProfile(npc, fallback, story, storyDetail, source) {
   const hasStory = Boolean(story && status === "available");
   const localizedPlayerRole =
     storyDetail?.localization?.playerRole ||
-    storyDetail?.presentation?.zhCN?.playerRole ||
-    storyDetail?.playerRole;
+    storyDetail?.presentation?.zhCN?.playerRole;
+  const localizedNpc = npc?.presentation?.zhCN || profile?.presentation?.zhCN || {};
 
   $("profileHero").style.setProperty("--profile-accent", fallback.accent);
   $("npcPortrait").src = fallback.selectImage;
   $("npcPortrait").alt = `${displayName} 的角色立绘`;
   $("npcName").textContent = displayName;
   $("npcRole").textContent = profileValue(npc, "role", fallback);
-  $("npcPersonality").textContent = profileValue(npc, "personality", fallback);
-  $("npcRelationship").textContent = profileValue(npc, "relationship", fallback);
-  $("npcSpeakingStyle").textContent = profileValue(npc, "speakingStyle", fallback);
-  $("playerRole").textContent =
+  $("npcPersonalityZh").textContent = localizedNpc.personality || fallback.personalityZh;
+  $("npcPersonalityEn").textContent = profileValue(npc, "personality", fallback);
+  $("npcRelationshipZh").textContent = localizedNpc.relationship || fallback.relationshipZh;
+  $("npcRelationshipEn").textContent = profileValue(npc, "relationship", fallback);
+  $("npcSpeakingStyleZh").textContent = localizedNpc.speakingStyle || fallback.speakingStyleZh;
+  $("npcSpeakingStyleEn").textContent = profileValue(npc, "speakingStyle", fallback);
+  $("playerRoleZh").textContent =
     localizedPlayerRole ||
-    fallback.playerRole ||
+    fallback.playerRoleZh ||
     "专属故事确定后，这里会显示你与角色相遇时的身份。";
-  $("profileSource").textContent =
-    source === "api" ? "角色资料已与后端公开配置同步" : "当前展示内置资料 · 后端恢复后会自动同步";
+  $("playerRoleEn").textContent =
+    storyDetail?.playerRole ||
+    fallback.playerRole ||
+    "Your role will appear when this character's story is ready.";
 
   const badge = $("availabilityBadge");
   badge.dataset.state = status;
   badge.textContent = hasStory
-    ? "真实故事可体验"
+    ? "故事可体验"
     : status === "disabled"
       ? "角色已下线"
       : "专属故事筹备中";
@@ -193,7 +220,6 @@ function renderProfile(npc, fallback, story, storyDetail, source) {
 function showNotFound() {
   $("profileContent").classList.add("hidden");
   $("profileNotFound").classList.remove("hidden");
-  setConnectionState("demo", "角色不存在");
 }
 
 async function initializeProfile() {
@@ -206,13 +232,11 @@ async function initializeProfile() {
     return;
   }
 
-  renderProfile(fallback, fallback, null, null, "fallback");
+  renderProfile(fallback, fallback, null, null);
   if (window.location.protocol === "file:") {
-    setConnectionState("demo", "离线角色资料");
     return;
   }
 
-  setConnectionState("connecting", "正在同步角色资料");
   try {
     const [npcPayload, storyPayload] = await Promise.all([
       apiRequest("/api/npcs"),
@@ -230,12 +254,9 @@ async function initializeProfile() {
         () => null,
       );
     }
-    renderProfile(npc, fallback, story, storyDetail, "api");
-    setConnectionState("live", "后端资料已同步");
-  } catch (error) {
-    renderProfile(fallback, fallback, null, null, "fallback");
-    setConnectionState("demo", "后端不可用 · 内置资料");
-    $("profileSource").title = error.message;
+    renderProfile(npc, fallback, story, storyDetail);
+  } catch {
+    renderProfile(fallback, fallback, null, null);
   }
 }
 

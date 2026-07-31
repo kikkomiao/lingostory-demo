@@ -585,38 +585,43 @@ a:focus-visible {
   line-height: 1.25;
 }
 
-.npc-emotions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 14px;
-}
-
-.npc-emotions span {
-  padding: 4px 7px;
-  border: 1.5px solid var(--ink);
-  border-radius: 999px;
-  background: var(--paper);
-  font-size: 8px;
-  font-weight: 800;
+.npc-card-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 18px;
 }
 
 .npc-details {
-  align-self: flex-start;
-  margin: 11px 0 13px;
-  color: var(--blue);
+  min-height: 39px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 2px solid var(--ink);
+  border-radius: 11px 14px 10px 13px;
+  background: var(--paper);
+  box-shadow: 2px 3px 0 var(--ink);
+  color: var(--ink);
   font-size: 10px;
   font-weight: 950;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
+  text-decoration: none;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
 }
 
-.npc-details:hover { color: var(--red-dark); }
+.npc-details span { color: var(--red); font-size: 15px; line-height: 1; }
+
+.npc-details:hover {
+  background: var(--yellow);
+  box-shadow: 1px 2px 0 var(--ink);
+  transform: translate(1px, 1px);
+}
 
 .npc-enter {
   width: 100%;
   min-height: 45px;
-  margin-top: auto;
+  margin-top: 0;
   padding: 10px 14px;
   border: 3px solid var(--ink);
   border-radius: 13px 17px 12px 15px;

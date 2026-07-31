@@ -962,18 +962,6 @@ function renderNpcLibrary() {
   npcLibrary.forEach((npc) => {
     const isPlayable = npc.availability === "available" && Boolean(npc.storyId);
     const detailHref = `./npc.html?id=${encodeURIComponent(npc.id)}`;
-    const emotionLabels = {
-      neutral: "中性",
-      happy: "开心",
-      sad: "难过",
-      angry: "生气",
-      nervous: "紧张",
-      surprised: "惊讶",
-    };
-    const supportedEmotionLabels = (npc.supportedEmotions || Object.keys(emotionLabels))
-      .filter((emotion) => emotionLabels[emotion])
-      .map((emotion) => `<span>${emotionLabels[emotion]}</span>`)
-      .join("");
     const card = document.createElement("article");
     card.className = `npc-card${isPlayable ? "" : " is-coming-soon"}`;
     card.dataset.npcId = npc.id;
@@ -994,17 +982,16 @@ function renderNpcLibrary() {
             : "专属剧情 · 待公布"
         }</span>
         <p class="npc-story-title">${escapeHtml(npc.storyTitle)}</p>
-        <div class="npc-emotions" aria-label="支持的剧情情绪">
-          ${supportedEmotionLabels}
+        <div class="npc-card-actions">
+          <a class="npc-details" href="${escapeHtml(detailHref)}">查看角色档案 <span>→</span></a>
+          <button
+            class="npc-enter"
+            type="button"
+            ${isPlayable ? `data-select-npc="${escapeHtml(npc.id)}"` : "disabled"}
+          >
+            ${isPlayable ? `选择 ${escapeHtml(npc.name)}，进入剧情 →` : "专属故事筹备中"}
+          </button>
         </div>
-        <a class="npc-details" href="${escapeHtml(detailHref)}">查看角色资料 →</a>
-        <button
-          class="npc-enter"
-          type="button"
-          ${isPlayable ? `data-select-npc="${escapeHtml(npc.id)}"` : "disabled"}
-        >
-          ${isPlayable ? `选择 ${escapeHtml(npc.name)}，进入剧情 →` : "专属故事筹备中"}
-        </button>
       </div>
     `;
     grid.append(card);

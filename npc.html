@@ -18,10 +18,6 @@
           <span class="beta">NPC FILE</span>
         </a>
         <div class="profile-topbar-actions">
-          <span id="detailConnectionStatus" class="connection-status" data-state="connecting">
-            <i aria-hidden="true"></i>
-            <span>正在读取角色资料</span>
-          </span>
           <a class="profile-back" href="./index.html">← 返回角色库</a>
         </div>
       </header>
@@ -44,7 +40,6 @@
             <h1 id="npcName">Cyrus</h1>
             <p id="npcRole" class="profile-role" lang="en">Senior executive at a large technology company</p>
             <div id="emotionChips" class="profile-chips" aria-label="支持的剧情情绪"></div>
-            <p id="profileSource" class="profile-source">正在读取后端角色资料…</p>
             <div class="profile-actions">
               <a id="storyAction" class="profile-primary hidden" href="./index.html">进入专属故事 →</a>
               <a class="profile-secondary" href="./index.html">查看其他角色</a>
@@ -57,35 +52,34 @@
             <span class="detail-number">01</span>
             <span class="detail-label">PLAYER ROLE · 你的身份</span>
             <h2>你在故事里是谁？</h2>
-            <p id="playerRole" lang="en">专属故事确定后，这里会显示你与角色相遇时的身份。</p>
+            <p id="playerRoleZh" class="profile-copy-zh">专属故事确定后，这里会显示你与角色相遇时的身份。</p>
+            <p id="playerRoleEn" class="profile-copy-en" lang="en">Your role will appear when this character's story is ready.</p>
           </article>
 
           <article class="profile-detail-card personality-card">
             <span class="detail-number">02</span>
             <span class="detail-label">PERSONALITY · 性格</span>
             <h2>对方是什么样的人？</h2>
-            <p id="npcPersonality" lang="en">正在加载角色性格…</p>
+            <p id="npcPersonalityZh" class="profile-copy-zh">正在加载角色性格…</p>
+            <p id="npcPersonalityEn" class="profile-copy-en" lang="en">Loading personality…</p>
           </article>
 
           <article class="profile-detail-card relationship-card">
             <span class="detail-number">03</span>
             <span class="detail-label">RELATIONSHIP · 你们的关系</span>
             <h2>对方会如何看待你？</h2>
-            <p id="npcRelationship" lang="en">正在加载角色关系…</p>
+            <p id="npcRelationshipZh" class="profile-copy-zh">正在加载角色关系…</p>
+            <p id="npcRelationshipEn" class="profile-copy-en" lang="en">Loading relationship…</p>
           </article>
 
           <article class="profile-detail-card speaking-card">
             <span class="detail-number">04</span>
             <span class="detail-label">SPEAKING STYLE · 对话风格</span>
             <h2>对方通常怎么说话？</h2>
-            <p id="npcSpeakingStyle" lang="en">正在加载对话风格…</p>
+            <p id="npcSpeakingStyleZh" class="profile-copy-zh">正在加载对话风格…</p>
+            <p id="npcSpeakingStyleEn" class="profile-copy-en" lang="en">Loading speaking style…</p>
           </article>
         </section>
-
-        <footer class="profile-footnote">
-          <span aria-hidden="true">✦</span>
-          <p>这些资料来自后端公开角色配置，用于帮助你在进入故事前理解身份、关系和沟通方式。</p>
-        </footer>
       </section>
     </main>
     <script src="./npc-detail.js"></script>

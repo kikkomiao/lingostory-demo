@@ -171,13 +171,6 @@ body { min-height: 100vh; }
   font-weight: 900;
 }
 
-.profile-source {
-  margin: 22px 0 0;
-  color: #817a70;
-  font-size: 10px;
-  font-weight: 800;
-}
-
 .profile-actions {
   display: flex;
   flex-wrap: wrap;
@@ -263,20 +256,22 @@ body { min-height: 100vh; }
   font: 650 15px/1.65 "Segoe UI", sans-serif;
 }
 
-.profile-footnote {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  margin-top: 30px;
-  padding: 19px 22px;
-  border: 3px solid var(--ink);
-  border-radius: 18px 23px 17px 21px;
-  background: var(--paper);
-  box-shadow: 4px 5px 0 var(--yellow), 7px 8px 0 var(--ink);
+.profile-detail-card .profile-copy-zh {
+  max-width: 92%;
+  color: var(--ink);
+  font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  font-weight: 800;
 }
 
-.profile-footnote > span { color: var(--red); font-size: 27px; }
-.profile-footnote p { margin: 0; color: var(--muted); font-size: 11px; font-weight: 750; line-height: 1.6; }
+.profile-detail-card .profile-copy-en {
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1.5px dashed rgba(23, 23, 23, .28);
+  color: #665f56;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.55;
+}
 
 .profile-empty {
   min-height: 520px;
@@ -310,7 +305,6 @@ body { min-height: 100vh; }
 @media (max-width: 840px) {
   .profile-shell { padding: 0 16px 28px; }
   .profile-topbar { min-height: 68px; }
-  .profile-topbar .connection-status { display: none; }
   .profile-hero { grid-template-columns: 1fr; }
   .profile-portrait { min-height: 420px; border-right: 0; border-bottom: 4px solid var(--ink); }
   .profile-portrait img { height: 400px; }
