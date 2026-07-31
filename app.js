@@ -117,7 +117,7 @@ const demoNpcLibrary = [
     estimatedMinutes: 6,
     level: "B1–B2 · 英语",
     accent: "#f6b1ca",
-    background: "./cassie-office-background.jpeg",
+    background: "./cassie-meeting-room-background-v1.png",
     selectImage: "./npc/cassie/Cassie_00_grid_select.png",
     emotionAssets: {
       neutral: "./npc/cassie/Cassie_01_neutral.png",
@@ -487,8 +487,8 @@ const offlineStoryConfig = {
     crisis: "方案十分钟后提交",
     opening: "会议刚刚结束。Cassie 因一个始于你草稿的客户留存创意受到公开表扬。",
     openingDetail: "她完善了案例并完成展示，却没有提到你的贡献。现在她想先私下解释。",
-    background: "./cassie-office-background.jpeg",
-    backgroundAlt: "手绘风客户体验项目工作区，桌上放着提案材料和待提交文件",
+    background: "./cassie-meeting-room-background-v1.png",
+    backgroundAlt: "手绘风团队会议室，白板与桌上展示着客户留存提案材料",
   },
 };
 
