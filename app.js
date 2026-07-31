@@ -1551,6 +1551,7 @@ async function submitLiveTurn(text, existingTurn = null, source = "text") {
             text: npcReply.utterance,
             displayName: npcReply.name || activeNpc.name,
             npcId: activeNpc.id,
+            actionId: npcReply.actionId,
             voiceProfile:
               npcReply.voiceProfile ||
               payload.session?.activeNpc?.voiceProfile ||

@@ -381,12 +381,12 @@ class VoiceController {
     );
   }
 
-  async speak(text, profile, displayName = "NPC") {
+  async speak(text, profile, displayName = "NPC", actionId = null) {
     if (!text || !profile?.voiceId) return;
     const generation = ++this.speechGeneration;
     this.interruptSpeech(false);
     if (isSherpaOnnxProfile(profile)) {
-      await this.speakSherpaOnnx(text, profile, displayName, generation);
+      await this.speakSherpaOnnx(text, profile, displayName, generation, actionId);
       return;
     }
     try {
@@ -466,7 +466,7 @@ class VoiceController {
     }
   }
 
-  async speakSherpaOnnx(text, profile, displayName, generation) {
+  async speakSherpaOnnx(text, profile, displayName, generation, actionId) {
     const controller = new AbortController();
     this.ttsAbortController = controller;
     try {
@@ -476,7 +476,7 @@ class VoiceController {
       const response = await fetch(`${config.apiBaseUrl}/api/tts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildSherpaOnnxRequest(text, profile)),
+        body: JSON.stringify(buildSherpaOnnxRequest(text, profile, actionId)),
         signal: controller.signal,
       });
       if (!response.ok) {
@@ -607,7 +607,12 @@ const voice = new VoiceController({
 
 window.addEventListener("lingostory:npc-reply", (event) => {
   const detail = event.detail || {};
-  void voice.speak(detail.text, detail.voiceProfile, detail.displayName || "NPC");
+  void voice.speak(
+    detail.text,
+    detail.voiceProfile,
+    detail.displayName || "NPC",
+    detail.actionId,
+  );
 });
 window.addEventListener("beforeunload", () => voice.interruptSpeech());
 window.lingostoryVoice = voice;

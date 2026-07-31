@@ -24,10 +24,11 @@ export function isSherpaOnnxProfile(profile) {
   return profile?.provider === "sherpa-onnx-vits";
 }
 
-export function buildSherpaOnnxRequest(text, profile) {
+export function buildSherpaOnnxRequest(text, profile, actionId) {
   return {
     provider: "sherpa-onnx-vits",
     voiceId: profile.voiceId,
+    actionId,
     text,
   };
 }

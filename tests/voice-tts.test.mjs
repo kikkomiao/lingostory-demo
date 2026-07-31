@@ -50,10 +50,11 @@ test("routes the fixed Mary profile to the backend Sherpa contract", () => {
   };
   assert.equal(isSherpaOnnxProfile(maryProfile), true);
   assert.equal(isSherpaOnnxProfile({ provider: "qwen3-tts" }), false);
-  assert.deepEqual(buildSherpaOnnxRequest("好，資料正確。", maryProfile), {
+  assert.deepEqual(buildSherpaOnnxRequest("好，你想由天后站去中環。", maryProfile, "confirm_central"), {
     provider: "sherpa-onnx-vits",
     voiceId: "mary-yue-v1",
-    text: "好，資料正確。",
+    actionId: "confirm_central",
+    text: "好，你想由天后站去中環。",
   });
 });
 
