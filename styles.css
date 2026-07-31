@@ -1335,11 +1335,15 @@ a:focus-visible {
 }
 
 .conversation-trigger {
-  min-height: 28px;
+  min-width: 138px;
+  min-height: 38px;
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 4px 8px;
+  align-self: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding: 7px 12px;
   border: 1.5px solid var(--ink);
   border-radius: 8px 11px 7px 10px;
   background: #d7ebff;
@@ -1349,20 +1353,6 @@ a:focus-visible {
   font-weight: 950;
   cursor: pointer;
   transition: .16s ease;
-}
-
-.conversation-trigger::before {
-  content: "+";
-  display: grid;
-  place-items: center;
-  width: 17px;
-  height: 17px;
-  flex: 0 0 auto;
-  border: 1.5px solid var(--ink);
-  border-radius: 5px 7px 4px 6px;
-  background: white;
-  font-size: 12px;
-  line-height: 1;
 }
 
 .conversation-trigger span { color: var(--ink); font-size: 9px; }
@@ -1376,7 +1366,6 @@ a:focus-visible {
   cursor: default;
   opacity: .72;
 }
-.conversation-trigger:disabled::before { content: "−"; border-color: #aaa298; color: #8a8277; }
 .conversation-trigger:disabled span,
 .conversation-trigger:disabled small { color: #8a8277; }
 .conversation-trigger:disabled:hover { background: #e9e3d8; box-shadow: none; transform: none; }

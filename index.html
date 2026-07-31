@@ -233,18 +233,6 @@
           <section id="transcriptBox" class="transcript-box">
             <div class="transcript-heading">
               <span>实时转写</span>
-              <button
-                id="conversationPanel"
-                class="conversation-trigger"
-                type="button"
-                aria-haspopup="dialog"
-                aria-controls="conversationModal"
-                aria-expanded="false"
-                disabled
-              >
-                <span>完整对话</span>
-                <small id="conversationCount">0 条</small>
-              </button>
             </div>
             <p id="transcript">你的表达会出现在这里…</p>
           </section>
@@ -291,6 +279,19 @@
           </section>
 
           <div id="keyboardTip" class="keyboard-tip"><kbd>Space</kbd> 录音　<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 选择分支</div>
+
+          <button
+            id="conversationPanel"
+            class="conversation-trigger"
+            type="button"
+            aria-haspopup="dialog"
+            aria-controls="conversationModal"
+            aria-expanded="false"
+            disabled
+          >
+            <span>完整对话</span>
+            <small id="conversationCount">0 条</small>
+          </button>
         </aside>
       </section>
 
