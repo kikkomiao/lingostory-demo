@@ -246,13 +246,17 @@
             <p id="transcript">你的表达会出现在这里…</p>
           </section>
 
-          <details id="conversationPanel" class="conversation-panel hidden">
-            <summary>
-              <span>完整对话</span>
-              <small id="conversationCount">0 条</small>
-            </summary>
-            <ol id="conversationList" class="conversation-list"></ol>
-          </details>
+          <button
+            id="conversationPanel"
+            class="conversation-trigger hidden"
+            type="button"
+            aria-haspopup="dialog"
+            aria-controls="conversationModal"
+            aria-expanded="false"
+          >
+            <span>完整对话</span>
+            <small id="conversationCount">0 条</small>
+          </button>
 
           <form id="turnForm" class="turn-form hidden">
             <label for="turnInput">用自己的方式回应</label>
@@ -297,6 +301,26 @@
 
           <div id="keyboardTip" class="keyboard-tip"><kbd>Space</kbd> 录音　<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 选择分支</div>
         </aside>
+      </section>
+
+      <section
+        id="conversationModal"
+        class="conversation-modal hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="conversationModalTitle"
+      >
+        <div class="conversation-modal-card">
+          <header class="conversation-modal-header">
+            <div>
+              <span class="conversation-modal-kicker">CONVERSATION HISTORY</span>
+              <h2 id="conversationModalTitle">目前的对话</h2>
+              <p>按发生顺序回看你和角色之间的完整交流。</p>
+            </div>
+            <button id="closeConversationModal" type="button" aria-label="关闭完整对话">×</button>
+          </header>
+          <ol id="conversationList" class="conversation-list conversation-modal-list"></ol>
+        </div>
       </section>
     </main>
     <script src="./app.js"></script>

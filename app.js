@@ -330,6 +330,7 @@ let pendingTurn = null;
 let submittingTurn = false;
 let userSelectedNpc = false;
 let apiConnecting = false;
+let conversationModalTrigger = null;
 
 const emotionAliases = {
   focused: "neutral",
@@ -613,6 +614,26 @@ function renderConversation(session) {
     "hidden",
     entries.length === 0 || session.phase !== "ended",
   );
+  if (entries.length === 0) closeConversationModal({ restoreFocus: false });
+}
+
+function openConversationModal() {
+  if ($("conversationPanel").classList.contains("hidden")) return;
+  conversationModalTrigger = document.activeElement;
+  $("conversationModal").classList.remove("hidden");
+  $("conversationPanel").setAttribute("aria-expanded", "true");
+  document.body.classList.add("conversation-modal-open");
+  $("closeConversationModal").focus();
+}
+
+function closeConversationModal({ restoreFocus = true } = {}) {
+  $("conversationModal").classList.add("hidden");
+  $("conversationPanel").setAttribute("aria-expanded", "false");
+  document.body.classList.remove("conversation-modal-open");
+  if (restoreFocus && conversationModalTrigger instanceof HTMLElement) {
+    conversationModalTrigger.focus();
+  }
+  conversationModalTrigger = null;
 }
 
 function setTurnBusy(busy) {
@@ -1366,8 +1387,8 @@ function resetStoryState() {
   $("endingOverlay").classList.add("hidden");
   $("endingOverlay").querySelector(".ending-card").classList.remove("story-only");
   $("liveReviewNotice").classList.add("hidden");
+  closeConversationModal({ restoreFocus: false });
   $("conversationPanel").classList.add("hidden");
-  $("conversationPanel").removeAttribute("open");
   $("conversationList").replaceChildren();
   $("conversationCount").textContent = "0 条";
   $("endingConversationPanel").classList.add("hidden");
@@ -1504,6 +1525,11 @@ $("turnInput").addEventListener("keydown", (event) => {
 $("retryTurnBtn").addEventListener("click", () => {
   if (pendingTurn) submitLiveTurn(pendingTurn.text, pendingTurn);
 });
+$("conversationPanel").addEventListener("click", openConversationModal);
+$("closeConversationModal").addEventListener("click", () => closeConversationModal());
+$("conversationModal").addEventListener("click", (event) => {
+  if (event.target === event.currentTarget) closeConversationModal();
+});
 $("apiRetryBtn").addEventListener("click", () => {
   userSelectedNpc = false;
   initializeData({ force: true });
@@ -1515,6 +1541,10 @@ document.querySelectorAll(".path-btn").forEach((button) => {
   button.addEventListener("click", () => choosePath(button.dataset.path));
 });
 document.addEventListener("keydown", (event) => {
+  if (!$("conversationModal").classList.contains("hidden")) {
+    if (event.key === "Escape") closeConversationModal();
+    return;
+  }
   const editing = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement;
   if (editing) return;
   if (event.code === "Space") {
