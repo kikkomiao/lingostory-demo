@@ -1596,6 +1596,40 @@ async function initializeData({ force = false } = {}) {
   }
 }
 
+async function refreshNpcCatalog() {
+  if (
+    apiConnecting ||
+    window.location.protocol === "file:" ||
+    $("npcLibraryOverlay").classList.contains("hidden")
+  ) {
+    return;
+  }
+
+  apiConnecting = true;
+  try {
+    const [npcPayload, storyPayload] = await Promise.all([
+      apiRequest("/api/npcs", { timeoutMs: API_DISCOVERY_TIMEOUT_MS }),
+      apiRequest("/api/stories", { timeoutMs: API_DISCOVERY_TIMEOUT_MS }),
+    ]);
+    const refreshedLibrary = buildApiNpcLibrary(npcPayload, storyPayload);
+    if (!refreshedLibrary.some((npc) => npc.availability === "available" && npc.storyId)) {
+      return;
+    }
+
+    const refreshedActiveNpc = refreshedLibrary.find((npc) => npc.id === activeNpc.id);
+    npcLibrary = refreshedLibrary;
+    if (refreshedActiveNpc) activeNpc = refreshedActiveNpc;
+    apiReady = true;
+    renderNpcLibrary();
+    applyActiveNpc();
+    setConnectionState("live", "真实 API");
+  } catch {
+    // Keep the last usable catalog visible; the next focus or interval retries.
+  } finally {
+    apiConnecting = false;
+  }
+}
+
 function renderNpcLibrary() {
   const grid = $("npcGrid");
   grid.replaceChildren();
@@ -2236,6 +2270,11 @@ document.addEventListener("keydown", (event) => {
     if (event.key === "3") choosePath("bad");
   }
 });
+window.addEventListener("focus", () => void refreshNpcCatalog());
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) void refreshNpcCatalog();
+});
+window.setInterval(() => void refreshNpcCatalog(), 15000);
 renderNpcLibrary();
 applyActiveNpc();
 showNpcLibrary();
