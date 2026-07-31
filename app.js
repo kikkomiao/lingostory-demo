@@ -115,12 +115,64 @@ const rounds = [
   },
 ];
 
+const coaching = [
+  {
+    label: "叫住对方",
+    upgrade: "Wait, Alex—please don’t go into your office yet.",
+    chunks: ["Wait, Alex", "please don’t go in", "yet"],
+    feedback: {
+      good: { grammar: "语法：准确", vocab: "用词：自然", issue: "称呼、请求和时间压力都表达得很清楚。" },
+      mid: { grammar: "语法：准确", vocab: "用词：信息不足", issue: "对方会停下，但还不知道为什么不能进办公室。" },
+      bad: { grammar: "语法：准确", vocab: "用词：过于模糊", issue: "something wrong 没有说明需要 Alex 立刻停下。" },
+    },
+  },
+  {
+    label: "解释问题",
+    upgrade: "I’m afraid I mixed up our lunches.",
+    chunks: ["I’m afraid", "I mixed up", "our lunches"],
+    feedback: {
+      good: { grammar: "语法：准确", vocab: "用词：地道", issue: "用 I’m afraid 缓和语气，信息完整而自然。" },
+      mid: { grammar: "语法：准确", vocab: "用词：不够具体", issue: "not right 可以理解，但没有直接说清拿反了午饭。" },
+      bad: { grammar: "语法：结构松散", vocab: "指代：不清楚", issue: "That one 和 maybe 让关键信息变得不确定。" },
+    },
+  },
+  {
+    label: "提出方案",
+    upgrade: "Let me replace yours right away. I’ll order the same meal.",
+    chunks: ["Let me replace yours", "right away", "I’ll order the same meal"],
+    feedback: {
+      good: { grammar: "语法：准确", vocab: "行动：明确", issue: "方案、时间和具体动作都很可靠。" },
+      mid: { grammar: "语法：准确", vocab: "时间：不够及时", issue: "later 会让对方担心问题不能马上解决。" },
+      bad: { grammar: "语法：准确", vocab: "语气：转移责任", issue: "让对方吃你的午饭，没有承担解决问题的动作。" },
+    },
+  },
+  {
+    label: "确认收尾",
+    upgrade: "I’ve reordered it. It’ll be here in twenty minutes—sorry again.",
+    chunks: ["I’ve reordered it", "it’ll be here in twenty minutes", "sorry again"],
+    feedback: {
+      good: { grammar: "语法：准确", vocab: "收尾：自然", issue: "结果、等待时间和道歉都有交代。" },
+      mid: { grammar: "语法：准确", vocab: "用词：过于笼统", issue: "I will do it 没有说明是否已经下单以及何时送到。" },
+      bad: { grammar: "语法：可以理解", vocab: "语气：偏直接", issue: "先问 we are good，会让人感觉动作还没完成就急着结束对话。" },
+    },
+  },
+];
+
+const scoreProfiles = {
+  good: { fluency: 92, localness: 94, accuracy: 96 },
+  mid: { fluency: 78, localness: 68, accuracy: 82 },
+  bad: { fluency: 58, localness: 47, accuracy: 63 },
+};
+
 let round = -1;
 let timerId = null;
 let secondsLeft = 8;
 let currentPath = "good";
 let history = [];
 let listening = false;
+let reviewEntries = [];
+let coachStep = -1;
+let focusReviewIndex = 0;
 
 function setCharacter(mood) {
   $("character").className = `character character--${mood}`;
@@ -205,7 +257,7 @@ function choosePath(path, timedOut = false) {
 
   const answer = rounds[round].replies[path];
   $("transcript").textContent = timedOut ? "（没有识别到有效表达）" : answer.user;
-  history.push({ round, path, line: answer.user });
+  history.push({ round, path, line: timedOut ? "（没有识别到有效表达）" : answer.user });
 
   setTimeout(() => {
     $("speakerName").textContent = "Alex";
@@ -226,6 +278,163 @@ function choosePath(path, timedOut = false) {
   }, 650);
 }
 
+function clampScore(value) {
+  return Math.max(0, Math.min(100, value));
+}
+
+function scoreHistoryItem(item) {
+  const profile = scoreProfiles[item.path];
+  const roundAdjustments = [
+    { fluency: 1, localness: 0, accuracy: 0 },
+    { fluency: -2, localness: 1, accuracy: -1 },
+    { fluency: 2, localness: -1, accuracy: 1 },
+    { fluency: 0, localness: -2, accuracy: 0 },
+  ][item.round];
+  const fluency = clampScore(profile.fluency + roundAdjustments.fluency);
+  const localness = clampScore(profile.localness + roundAdjustments.localness);
+  const accuracy = clampScore(profile.accuracy + roundAdjustments.accuracy);
+  return {
+    ...item,
+    fluency,
+    localness,
+    accuracy,
+    score: Math.round((fluency + localness + accuracy) / 3),
+  };
+}
+
+function averageScore(entries, key) {
+  return Math.round(entries.reduce((sum, item) => sum + item[key], 0) / Math.max(1, entries.length));
+}
+
+function drawScoreTrendChart(focusIndex) {
+  const canvas = $("scoreTrendChart");
+  if (!canvas || !reviewEntries.length) return;
+  const width = Math.max(320, Math.floor(canvas.getBoundingClientRect().width || 760));
+  const height = width < 520 ? 260 : 310;
+  const ratio = Math.min(2, window.devicePixelRatio || 1);
+  canvas.width = Math.floor(width * ratio);
+  canvas.height = Math.floor(height * ratio);
+  const context = canvas.getContext("2d");
+  context.scale(ratio, ratio);
+  context.clearRect(0, 0, width, height);
+
+  const padding = { top: 28, right: 24, bottom: 48, left: 42 };
+  const plotWidth = width - padding.left - padding.right;
+  const plotHeight = height - padding.top - padding.bottom;
+  const minScore = 40;
+  const maxScore = 100;
+  const x = (index) => padding.left + (plotWidth / 3) * index;
+  const y = (score) => padding.top + ((maxScore - score) / (maxScore - minScore)) * plotHeight;
+
+  context.save();
+  const focusX = x(focusIndex);
+  context.fillStyle = "rgba(255, 211, 36, .18)";
+  context.fillRect(focusX - Math.min(54, plotWidth / 10), padding.top - 10, Math.min(108, plotWidth / 5), plotHeight + 22);
+  context.restore();
+
+  context.font = '700 10px "PingFang SC", sans-serif';
+  context.textAlign = "right";
+  context.textBaseline = "middle";
+  [40, 60, 80, 100].forEach((score) => {
+    const lineY = y(score);
+    context.setLineDash([5, 6]);
+    context.strokeStyle = "rgba(23, 23, 23, .2)";
+    context.lineWidth = 1;
+    context.beginPath();
+    context.moveTo(padding.left, lineY);
+    context.lineTo(width - padding.right, lineY);
+    context.stroke();
+    context.fillStyle = "#777066";
+    context.fillText(String(score), padding.left - 9, lineY);
+  });
+  context.setLineDash([]);
+
+  const series = [
+    { key: "fluency", color: "#2488ed" },
+    { key: "localness", color: "#f0b900" },
+    { key: "accuracy", color: "#36a85f" },
+  ];
+
+  series.forEach((item) => {
+    context.strokeStyle = item.color;
+    context.lineWidth = 4;
+    context.lineJoin = "round";
+    context.lineCap = "round";
+    context.beginPath();
+    reviewEntries.forEach((entry, index) => {
+      const pointX = x(index);
+      const pointY = y(entry[item.key]);
+      if (index === 0) context.moveTo(pointX, pointY);
+      else context.lineTo(pointX, pointY);
+    });
+    context.stroke();
+
+    reviewEntries.forEach((entry, index) => {
+      const pointX = x(index);
+      const pointY = y(entry[item.key]);
+      context.fillStyle = "#fffdf7";
+      context.strokeStyle = "#171717";
+      context.lineWidth = 2;
+      context.beginPath();
+      context.arc(pointX, pointY, index === focusIndex ? 7 : 5, 0, Math.PI * 2);
+      context.fill();
+      context.stroke();
+      context.fillStyle = item.color;
+      context.beginPath();
+      context.arc(pointX, pointY, index === focusIndex ? 3.5 : 2.5, 0, Math.PI * 2);
+      context.fill();
+    });
+  });
+
+  context.textAlign = "center";
+  reviewEntries.forEach((entry, index) => {
+    const pointX = x(index);
+    context.fillStyle = index === focusIndex ? "#ff3347" : "#171717";
+    context.font = `900 ${index === focusIndex ? 12 : 10}px "PingFang SC", sans-serif`;
+    context.fillText(rounds[entry.round].state, pointX, height - 25);
+    context.fillStyle = "#777066";
+    context.font = '700 8px "PingFang SC", sans-serif';
+    context.fillText(coaching[entry.round].label, pointX, height - 10);
+  });
+
+  canvas.setAttribute(
+    "aria-label",
+    reviewEntries
+      .map(
+        (entry) =>
+          `${rounds[entry.round].state}：流畅度 ${entry.fluency}，地道度 ${entry.localness}，正确度 ${entry.accuracy}`,
+      )
+      .join("；"),
+  );
+}
+
+function selectFocusSentence(index) {
+  const entry = reviewEntries[index];
+  if (!entry) return;
+  const coach = coaching[entry.round];
+  const feedback = coach.feedback[entry.path];
+  coachStep = -1;
+
+  $("focusRound").textContent = `${rounds[entry.round].state} · ${coach.label}`;
+  $("focusScore").textContent = String(entry.score);
+  $("originalLine").textContent = entry.line;
+  $("grammarFeedback").textContent = feedback.grammar;
+  $("vocabFeedback").textContent = feedback.vocab;
+  $("focusIssue").textContent = feedback.issue;
+  $("upgradeLine").textContent = coach.upgrade;
+  $("coachStatus").textContent = "先听整句，再分成语块跟读。";
+  $("coachBtn").textContent = "开始带练";
+
+  const chunks = $("coachChunks");
+  chunks.replaceChildren();
+  coach.chunks.forEach((chunk) => {
+    const item = document.createElement("span");
+    item.className = "coach-chunk";
+    item.textContent = chunk;
+    chunks.append(item);
+  });
+}
+
 function showEnding() {
   clearInterval(timerId);
   const goodCount = history.filter((item) => item.path === "good").length;
@@ -238,24 +447,57 @@ function showEnding() {
     $("endingStamp").textContent = "危机解除";
     $("endingTitle").textContent = "你成功换回了午饭";
     $("endingDesc").textContent = "Alex 接受了你的解决方案，你也用自然、得体的方式完成了道歉。";
-    $("endingStamp").style.background = "#dfe9df";
+    $("endingStamp").style.background = "#dff0c0";
     setCharacter("relieved");
   } else if (badCount >= 2) {
     $("endingStamp").textContent = "惊险收尾";
     $("endingTitle").textContent = "午饭保住了，气氛有点尴尬";
     $("endingDesc").textContent = "你的意思最终被理解，但更明确的动作和语气会让沟通轻松很多。";
-    $("endingStamp").style.background = "#f1ddd7";
+    $("endingStamp").style.background = "#ffd9e5";
     setCharacter("impatient");
   } else {
     $("endingStamp").textContent = "普通结局";
     $("endingTitle").textContent = "问题解决了";
     $("endingDesc").textContent = "你的表达可以理解。再补充具体行动，语气会更自然、更可靠。";
-    $("endingStamp").style.background = "#eee4cf";
+    $("endingStamp").style.background = "#fff0a9";
     setCharacter("neutral");
   }
 
-  $("originalLine").textContent = history.at(-1)?.line || "I mixed up our lunches.";
+  reviewEntries = history.map(scoreHistoryItem);
+  const fluency = averageScore(reviewEntries, "fluency");
+  const localness = averageScore(reviewEntries, "localness");
+  const accuracy = averageScore(reviewEntries, "accuracy");
+  const overall = Math.round((fluency + localness + accuracy) / 3);
+  const weakestIndex = reviewEntries.reduce(
+    (lowest, entry, index, entries) => (entry.score < entries[lowest].score ? index : lowest),
+    0,
+  );
+  focusReviewIndex = weakestIndex;
+  const weakestDimension = [
+    ["流畅度", fluency],
+    ["地道度", localness],
+    ["正确度", accuracy],
+  ].sort((a, b) => a[1] - b[1])[0][0];
+  const suggestions = {
+    流畅度: "先按语块跟读，再尝试一口气说完整句。",
+    地道度: "优先把“意思正确”升级为“这个场景里真的会这样说”。",
+    正确度: "重点留意句子结构和动作发生的时间。",
+  };
+
+  $("overallScore").textContent = String(overall);
+  $("overallScoreRing").style.setProperty("--score", String(overall));
+  $("fluencyScore").textContent = String(fluency);
+  $("localScore").textContent = String(localness);
+  $("accuracyScore").textContent = String(accuracy);
+  $("reviewSuggestion").textContent = suggestions[weakestDimension];
+  $("chartSummary").textContent =
+    `${rounds[reviewEntries[weakestIndex].round].state} 的总分最低，` +
+    `其中${weakestDimension}最值得优先加强。`;
+
+  selectFocusSentence(weakestIndex);
+  document.querySelector(".experience").classList.add("review-mode");
   $("endingOverlay").classList.remove("hidden");
+  requestAnimationFrame(() => drawScoreTrendChart(weakestIndex));
 }
 
 function reset() {
@@ -264,8 +506,12 @@ function reset() {
   history = [];
   currentPath = "good";
   listening = false;
+  reviewEntries = [];
+  coachStep = -1;
+  focusReviewIndex = 0;
   $("introOverlay").classList.remove("hidden");
   $("endingOverlay").classList.add("hidden");
+  document.querySelector(".experience").classList.remove("review-mode");
   $("progressFill").style.width = "0";
   $("roundLabel").textContent = "准备阶段";
   $("roundCount").textContent = "0 / 4";
@@ -284,6 +530,32 @@ $("startBtn").addEventListener("click", () => {
 });
 $("restartBtn").addEventListener("click", reset);
 $("retryBtn").addEventListener("click", reset);
+$("listenBtn").addEventListener("click", () => {
+  $("listenBtn").textContent = "♪ 正在播放…";
+  $("coachStatus").textContent = "先听重音和停顿：不要逐词翻译。";
+  setTimeout(() => {
+    $("listenBtn").textContent = "▶ 再听一次";
+  }, 1100);
+});
+$("coachBtn").addEventListener("click", () => {
+  const chunks = [...document.querySelectorAll(".coach-chunk")];
+  if (!chunks.length) return;
+  if (coachStep >= chunks.length - 1) {
+    coachStep = -1;
+    chunks.forEach((chunk) => chunk.classList.remove("active", "done"));
+    $("coachStatus").textContent = "已重置。准备好后再跟读一遍。";
+    $("coachBtn").textContent = "再练一次";
+    return;
+  }
+
+  coachStep += 1;
+  chunks.forEach((chunk, index) => {
+    chunk.classList.toggle("active", index === coachStep);
+    chunk.classList.toggle("done", index < coachStep);
+  });
+  $("coachStatus").textContent = `跟读 ${coachStep + 1} / ${chunks.length}：${chunks[coachStep].textContent}`;
+  $("coachBtn").textContent = coachStep === chunks.length - 1 ? "带练完成 ✓" : "下一语块 →";
+});
 $("micBtn").addEventListener("click", () => (listening ? choosePath("good") : simulateListening()));
 $("soundBtn").addEventListener("click", (event) => {
   event.currentTarget.textContent = event.currentTarget.textContent === "♪" ? "×" : "♪";
@@ -299,6 +571,11 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "1") choosePath("good");
   if (event.key === "2") choosePath("mid");
   if (event.key === "3") choosePath("bad");
+});
+window.addEventListener("resize", () => {
+  if (document.querySelector(".experience").classList.contains("review-mode")) {
+    drawScoreTrendChart(focusReviewIndex);
+  }
 });
 
 reset();
