@@ -2191,7 +2191,7 @@ $("brandHome").addEventListener("click", (event) => {
 $("homeBtn").addEventListener("click", () => {
   clearStoredPlaythrough();
   showNpcLibrary();
-  gameEntry.classList.remove("hidden", "is-transitioning");
+  gameEntry.classList.remove("hidden", "is-exiting", "is-transitioning");
   document.body.classList.add("game-entry-open");
 });
 $("restartBtn").addEventListener("click", () => {
@@ -2247,14 +2247,17 @@ if ((REQUESTED_NPC_ID || OPEN_LIBRARY_DIRECTLY) && !forceGameEntry) {
 gameEntryTrigger.addEventListener(
   "click",
   () => {
-    if (gameEntry.classList.contains("is-transitioning")) return;
+    if (gameEntry.classList.contains("is-exiting")) return;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    gameEntry.classList.add("is-transitioning");
-    window.setTimeout(() => {
-      gameEntry.classList.add("hidden");
-      gameEntry.classList.remove("is-transitioning");
-      document.body.classList.remove("game-entry-open");
-    }, reducedMotion ? 80 : 1100);
+    gameEntry.classList.add("is-exiting");
+    window.requestAnimationFrame(() => {
+      gameEntry.classList.add("is-transitioning");
+      window.setTimeout(() => {
+        gameEntry.classList.add("hidden");
+        gameEntry.classList.remove("is-exiting", "is-transitioning");
+        document.body.classList.remove("game-entry-open");
+      }, reducedMotion ? 80 : 1100);
+    });
   },
 );
 
