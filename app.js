@@ -48,6 +48,7 @@ const demoNpcLibrary = [
     storyDescription: "結衣的日语机场值机场景正在编排，故事确定后即可开放。",
     level: "故事待定",
     accent: "#cfe6ff",
+    background: "./kate-airport-background-v3.png",
     selectImage: "./npc/kate/Kate_00_grid_select.png",
     emotionAssets: {
       neutral: "./npc/kate/Kate_01_neutral.png",
@@ -71,7 +72,7 @@ const demoNpcLibrary = [
     estimatedMinutes: 4,
     level: "A1–A2 · 英语",
     accent: "#f2a05f",
-    background: "./office-background-v2.png",
+    background: "./mike-mtr-background-v2.png",
     selectImage: "./npc/mike/Mike_00_grid_select.png",
     emotionAssets: {
       neutral: "./npc/mike/Mike_01_neutral.png",
@@ -118,7 +119,7 @@ const demoNpcLibrary = [
     estimatedMinutes: 6,
     level: "B1–B2 · 英语",
     accent: "#f6b1ca",
-    background: "./cassie-office-background.jpeg",
+    background: "./cassie-meeting-room-background-v1.png",
     selectImage: "./npc/cassie/Cassie_00_grid_select.png",
     emotionAssets: {
       neutral: "./npc/cassie/Cassie_01_neutral.png",
@@ -488,8 +489,8 @@ const offlineStoryConfig = {
     crisis: "方案十分钟后提交",
     opening: "会议刚刚结束。Cassie 因一个始于你草稿的客户留存创意受到公开表扬。",
     openingDetail: "她完善了案例并完成展示，却没有提到你的贡献。现在她想先私下解释。",
-    background: "./cassie-office-background.jpeg",
-    backgroundAlt: "手绘风客户体验项目工作区，桌上放着提案材料和待提交文件",
+    background: "./cassie-meeting-room-background-v1.png",
+    backgroundAlt: "手绘风团队会议室，白板与桌上展示着客户留存提案材料",
   },
 };
 
@@ -998,6 +999,9 @@ function hideTurnError() {
 
 function renderLiveSession(session, npcReply = null, userText = "") {
   if (!session) return;
+  const previousSessionId = liveSession?.sessionId || liveSession?.id;
+  const nextSessionId = session.sessionId || session.id;
+  const enteringSession = !previousSessionId || previousSessionId !== nextSessionId;
   setMenuAudioMode(false);
   liveSession = session;
   storePlaythroughId(session.sessionId || session.id);
@@ -1092,7 +1096,7 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   $("timerValue").textContent = "";
   $("timer").style.setProperty("--progress", "1");
   $("timer").querySelector(".timer-label").textContent = "";
-  $("voiceStatus").textContent = "点击麦克风说话，或使用文本输入";
+  $("voiceStatus").textContent = "点击麦克风或按空格开始/结束录音，也可使用文本输入";
   $("turnInput").placeholder = isJapanese
     ? "日本語で言いたいことを入力してください…"
     : isCantonese
@@ -1106,6 +1110,9 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   $("keyboardTip").classList.add("hidden");
   hideTurnError();
   setCharacter(normalizeEmotion(replyEmotion));
+  if (enteringSession) {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  }
 }
 
 function controllerFeedback(controller) {
@@ -1523,7 +1530,6 @@ async function startLiveStory() {
     const session = payload.session || payload;
     $("introOverlay").classList.add("hidden");
     renderLiveSession(session);
-    $("turnInput").focus();
   } catch (error) {
     $("introModeHint").textContent = `暂时无法开始：${localizedApiError(error)}`;
   } finally {
@@ -1836,7 +1842,7 @@ function simulateListening() {
   listening = true;
   $("micBtn").classList.add("listening");
   $("wave").classList.add("active");
-  $("voiceStatus").textContent = "正在聆听…再次点击结束";
+  $("voiceStatus").textContent = "正在聆听…再次点击麦克风或按空格结束";
   $("transcript").textContent = "Listening…";
   $("transcriptBox").classList.add("processing");
   setTimeout(() => {
@@ -2182,7 +2188,9 @@ function resetStoryState() {
       : offline.openingDetail;
   $("speakerName").textContent = "旁白";
   $("voiceStatus").textContent =
-    appMode === "live" ? "点击麦克风说话，或使用文本输入" : "点击麦克风，或按住空格说话";
+    appMode === "live"
+      ? "点击麦克风或按空格开始/结束录音，也可使用文本输入"
+      : "点击麦克风或按空格开始/结束录音";
   $("transcript").textContent = "你的表达会出现在这里…";
   $("transcriptBox").classList.remove("processing");
   $("translation").classList.remove("hidden");
@@ -2360,6 +2368,7 @@ document.addEventListener("keydown", (event) => {
   if (editing) return;
   if (event.code === "Space") {
     event.preventDefault();
+    if (event.repeat) return;
     if (appMode === "live") {
       if (window.lingostoryVoice) void window.lingostoryVoice.toggleRecording();
       else $("turnInput").focus();

@@ -30,6 +30,7 @@
   let mode = "menu";
   let fadeFrame = 0;
   let fadeVersion = 0;
+  let playbackVersion = 0;
 
   const syncControls = () => {
     document.querySelectorAll("[data-sound-toggle]").forEach((button) => {
@@ -68,10 +69,16 @@
 
   const playBackgroundMusic = async () => {
     if (!enabled || !unlocked || mode !== "menu" || !backgroundMusic.paused) return;
+    const version = ++playbackVersion;
     stopFade();
     backgroundMusic.volume = 0;
     try {
       await backgroundMusic.play();
+      if (version !== playbackVersion || !enabled || mode !== "menu") {
+        backgroundMusic.pause();
+        backgroundMusic.volume = BGM_VOLUME;
+        return;
+      }
       fadeTo(BGM_VOLUME, 280);
     } catch {
       // A later user interaction will retry if the browser blocked autoplay.
@@ -79,14 +86,18 @@
   };
 
   const pauseBackgroundMusic = ({ fade = true } = {}) => {
-    if (backgroundMusic.paused) return;
+    playbackVersion += 1;
+    stopFade();
+    if (backgroundMusic.paused) {
+      backgroundMusic.volume = BGM_VOLUME;
+      return;
+    }
     const finish = () => {
       backgroundMusic.pause();
       backgroundMusic.volume = BGM_VOLUME;
     };
     if (fade) fadeTo(0, 320, finish);
     else {
-      stopFade();
       finish();
     }
   };
@@ -126,7 +137,7 @@
     },
 
     playEffect(kind = "soft") {
-      if (!enabled || !unlocked) return;
+      if (!enabled || !unlocked || mode !== "menu") return;
       const effect = effects[kind] || effects.soft;
       effect.pause();
       effect.currentTime = 0;
@@ -140,7 +151,8 @@
 
     enterConversation() {
       mode = "conversation";
-      pauseBackgroundMusic();
+      pauseBackgroundMusic({ fade: false });
+      stopEffects();
     },
 
     syncControls,
