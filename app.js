@@ -38,11 +38,11 @@ const demoNpcLibrary = [
     source: "demo",
     availability: "comingSoon",
     name: "Kate",
-    role: "社区图书馆助理",
+    role: "客舱乘务员",
     storyId: null,
     episode: "专属剧情 · 待公布",
     storyTitle: "故事正在筹备中",
-    storyDescription: "Kate 的图书馆服务与日常英语场景正在编排，故事确定后即可开放。",
+    storyDescription: "Kate 的日语机场值机场景正在编排，故事确定后即可开放。",
     level: "故事待定",
     accent: "#cfe6ff",
     selectImage: "./npc/kate/Kate_00_grid_select.png",
@@ -144,6 +144,10 @@ const storyPresentation = {
   "lunch-mixup-cyrus-v1": {
     title: "拿错了老板的午饭",
     synopsis: "在 Cyrus 走进办公室之前说明午餐拿错，并处理后续问题。",
+  },
+  "japan-airport-checkin-kate-ja-v1": {
+    title: "日本机场值机",
+    synopsis: "从东京飞往上海前，用简单日语回答 Kate 的值机问题并拿到登机牌。",
   },
 };
 
@@ -464,6 +468,10 @@ function normalizeApiNpc(apiNpc, story, presentationKey) {
     story?.presentation?.episode ||
     (hasPublishedStory ? presentation.episode.replace("LINGOSTORY · ", "") : "专属剧情 · 待公布");
   const level = story?.level || story?.presentation?.level || presentation.level.split(" · ")[0];
+  const displayLevel =
+    story?.targetLanguage === "ja" && !String(level).includes("日语")
+      ? `${level} · 日语`
+      : level;
   const estimatedMinutes =
     story?.estimatedMinutes ?? story?.presentation?.estimatedMinutes ?? 3;
   const storyTitle = firstNonEmptyString(
@@ -499,7 +507,9 @@ function normalizeApiNpc(apiNpc, story, presentationKey) {
       (hasPublishedStory
         ? `开口推动剧情！在 ${estimatedMinutes} 分钟的自然对话中完成这次沟通挑战。`
         : `${apiNpc.displayName || profile.displayName || presentationKey} 的专属故事正在编排，确定后即可开放。`),
-    level: canStartStory ? level : "故事待定",
+    level: canStartStory ? displayLevel : "故事待定",
+    targetLanguage: story?.targetLanguage || "en",
+    voiceProfile: profile.voiceProfile || apiNpc.voiceProfile || null,
     accent: presentation.accent,
     selectImage: presentation.selectImage,
     emotionAssets: presentation.emotionAssets,
@@ -734,6 +744,7 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   if (!session) return;
   liveSession = session;
   storePlaythroughId(session.sessionId || session.id);
+  window.lingostoryVoice?.setLanguage(session.targetLanguage || "en");
 
   const sessionNpcId = session.activeNpc?.id;
   const sessionNpc = npcLibrary.find((npc) => npc.id === sessionNpcId);
@@ -778,8 +789,10 @@ function renderLiveSession(session, npcReply = null, userText = "") {
     latestNpcUtterance?.emotionId ||
     latestNpcAction?.emotionId ||
     session.activeNpc?.emotionId;
-  const replyTranslation =
-    npcReply?.translationZh || latestNpcUtterance?.presentation?.zhCN?.text || "";
+  const isJapanese = session.targetLanguage === "ja";
+  const replyTranslation = isJapanese
+    ? ""
+    : npcReply?.translationZh || latestNpcUtterance?.presentation?.zhCN?.text || "";
 
   $("roundLabel").textContent = `${stageLabel} · 沟通目标`;
   $("roundCount").textContent = progress?.total
@@ -798,13 +811,19 @@ function renderLiveSession(session, npcReply = null, userText = "") {
     "轮到你了。用自己的方式推动剧情。";
   $("translation").textContent = replyTranslation;
   $("translation").classList.toggle("hidden", !replyTranslation);
-  $("transcript").textContent = userText || latestUserEvent?.text || "输入你的英文表达，它会出现在这里…";
+  $("transcript").textContent =
+    userText ||
+    latestUserEvent?.text ||
+    (isJapanese ? "输入你的日语表达，它会出现在这里…" : "输入你的英文表达，它会出现在这里…");
   $("crisisBadge").textContent = replyStageText || "剧情正在变化";
   $("crisisBadge").classList.toggle("visible", Boolean(replyStageText));
   $("timerValue").textContent = "∞";
   $("timer").style.setProperty("--progress", "1");
   $("timer").querySelector("span").textContent = "自由说";
   $("voiceStatus").textContent = "点击麦克风说话，或使用文本输入";
+  $("turnInput").placeholder = isJapanese
+    ? "日本語で言いたいことを入力してください…"
+    : "Type what you want to say in English…";
   $("turnForm").classList.remove("hidden");
   $("keyboardTip").classList.add("hidden");
   hideTurnError();
@@ -812,7 +831,14 @@ function renderLiveSession(session, npcReply = null, userText = "") {
 }
 
 function controllerFeedback(controller) {
-  if (!controller) return "文本回合已接入 · 语音将在 P2 开放";
+  if (!controller) return "可以继续说话或使用文本输入";
+  if (activeNpc.targetLanguage === "ja") {
+    if (controller.reason === "stay") return "Kate 会自然地再确认一次";
+    if (controller.outcome === "success") return "回答已确认，继续下一项";
+    if (controller.outcome === "partial" || controller.outcome === "failure") {
+      return "Kate 已提供简单提示，流程继续";
+    }
+  }
   if (controller.outcome === "success") return "表达有效，剧情已进入下一阶段";
   if (controller.outcome === "partial") return "对方理解了一部分，可以继续补充";
   if (controller.outcome === "failure") return "这次还没有推动目标，试着说得更明确";
@@ -851,13 +877,30 @@ function showLiveEnding(session) {
       mood: "neutral",
     },
   };
-  const copy = endingCopy[session.ending] || endingCopy.mixed;
+  const isJapanese = session.targetLanguage === "ja";
+  const copy = isJapanese
+    ? {
+        stamp: "值机完成",
+        title: "你顺利拿到了登机牌",
+        description: "姓名、行李、座位、安全信息和登机时间都已确认。",
+        color: "#dff0c0",
+        mood: "happy",
+      }
+    : endingCopy[session.ending] || endingCopy.mixed;
   $("endingStamp").textContent = copy.stamp;
   $("endingStamp").style.background = copy.color;
   $("endingTitle").textContent = copy.title;
   $("endingDesc").textContent = copy.description;
   $("endingOverlay").querySelector(".report-kicker").textContent = "STORY COMPLETE · 剧情结果";
-  $("reviewSuggestion").textContent = "剧情数据已保存；逐句评分、折线图和带练将在 P1 学习复盘接口接入后开放。";
+  $("reviewSuggestion").textContent = isJapanese
+    ? "本次日语 Demo 不生成学习复盘；你可以直接重新体验故事。"
+    : "剧情数据已保存；逐句评分、折线图和带练将在 P1 学习复盘接口接入后开放。";
+  $("liveReviewTitle").textContent = isJapanese
+    ? "日语值机流程已完成并保存"
+    : "真实剧情已完成并保存";
+  $("liveReviewDescription").textContent = isJapanese
+    ? "本轮采用固定成功结局，不排队生成英语学习复盘。"
+    : "本轮 NPC 回复、分支与结局来自后端。学习评分接口将在下一里程碑接入。";
   $("retryBtn").textContent = "重新体验故事";
   setCharacter(normalizeEmotion(session.activeNpc?.emotionId || copy.mood));
   $("liveReviewNotice").classList.remove("hidden");
@@ -871,12 +914,16 @@ function createClientTurnId() {
   return `turn_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
-async function submitLiveTurn(text, existingTurn = null) {
+async function submitLiveTurn(text, existingTurn = null, source = "text") {
   const normalizedText = String(text || "").trim();
   const sessionId = liveSession?.sessionId || liveSession?.id;
   if (!sessionId || !normalizedText || submittingTurn) return;
 
-  const request = existingTurn || { clientTurnId: createClientTurnId(), text: normalizedText };
+  const request = existingTurn || {
+    clientTurnId: createClientTurnId(),
+    text: normalizedText,
+    source,
+  };
   pendingTurn = request;
   hideTurnError();
   setTurnBusy(true);
@@ -1093,12 +1140,27 @@ function renderNpcLibrary() {
 }
 
 function applyActiveNpc() {
+  const isJapanese = activeNpc.targetLanguage === "ja";
+  document.querySelector(".experience").classList.toggle("japanese-story", isJapanese);
+  document.querySelector(".stage-bg").alt = isJapanese
+    ? "日语机场值机故事背景"
+    : "手绘风办公室与桌上的两份午饭";
   $("characterName").textContent = activeNpc.name;
   $("storyTitle").textContent = activeNpc.storyTitle;
   $("storyDescription").textContent = activeNpc.storyDescription;
   $("estimatedMinutes").textContent = `约 ${activeNpc.estimatedMinutes || 3} 分钟`;
   $("interactionModeLabel").textContent =
-    activeNpc.source === "api" ? "文本互动" : "语音模拟";
+    activeNpc.source === "api" ? "文本 + 语音" : "语音模拟";
+  $("learningPolicyTitle").textContent = isJapanese
+    ? "逐题完成值机，不中途打断"
+    : "练习时不打断，故事后再精讲";
+  $("learningPolicyDescription").textContent = isJapanese
+    ? "用简单日语回答一个问题，再进入下一项；没说清时 Kate 只会自然追问一次。"
+    : "先像真实生活一样把话说完，结束后再集中分析语法、用词和表达自然度。";
+  $("endingModeLabel").textContent = isJapanese ? "固定成功结局" : "多结局";
+  if (activeNpc.targetLanguage) {
+    window.lingostoryVoice?.setLanguage(activeNpc.targetLanguage);
+  }
   $("character").alt = `${activeNpc.name} 的中性情绪立绘`;
   setCharacter("neutral");
 }
@@ -1484,12 +1546,18 @@ function resetStoryState() {
   $("roundCount").textContent = appMode === "live" ? "动态剧情" : "0 / 4";
   $("taskTitle").textContent = "先看清发生了什么";
   $("taskHint").textContent = "点击开始挑战，进入第一轮沟通。";
-  $("sceneLabel").textContent = "午休 · 12:21";
-  $("crisisBadge").textContent = "他快走到门口了";
-  $("subtitle").textContent = "你刚坐下就发现——两份午饭拿反了。老板那份，已经被你打开过。";
-  $("translation").textContent = `而 ${activeNpc.name} 正走向他的办公室。`;
+  const isJapanese = activeNpc.targetLanguage === "ja";
+  $("sceneLabel").textContent = isJapanese ? "东京机场 · 值机柜台" : "午休 · 12:21";
+  $("crisisBadge").textContent = isJapanese ? "正在办理值机" : "他快走到门口了";
+  $("subtitle").textContent = isJapanese
+    ? "你来到东京机场的值机柜台，准备搭乘前往上海的航班。"
+    : "你刚坐下就发现——两份午饭拿反了。老板那份，已经被你打开过。";
+  $("translation").textContent = isJapanese
+    ? "Kate 正在值机区域协助你完成手续。"
+    : `而 ${activeNpc.name} 正走向他的办公室。`;
   $("speakerName").textContent = "旁白";
-  $("voiceStatus").textContent = "点击麦克风，或按空格开始说话";
+  $("voiceStatus").textContent =
+    appMode === "live" ? "点击麦克风说话，或使用文本输入" : "点击麦克风，或按住空格说话";
   $("transcript").textContent = "你的表达会出现在这里…";
   $("transcriptBox").classList.remove("processing");
   $("translation").classList.remove("hidden");
@@ -1588,8 +1656,12 @@ $("coachBtn").addEventListener("click", () => {
 });
 $("micBtn").addEventListener("click", () => {
   if (appMode === "live") {
-    $("turnInput").focus();
-    $("voiceStatus").textContent = "P0 先使用文本输入 · 语音将在 P2 接入";
+    if (window.lingostoryVoice) {
+      void window.lingostoryVoice.toggleRecording();
+    } else {
+      $("turnInput").focus();
+      $("voiceStatus").textContent = "语音模块不可用，仍可使用文本输入";
+    }
     return;
   }
   if (listening) choosePath("good");
@@ -1619,6 +1691,7 @@ $("apiRetryBtn").addEventListener("click", () => {
 });
 $("soundBtn").addEventListener("click", (event) => {
   event.currentTarget.textContent = event.currentTarget.textContent === "♪" ? "×" : "♪";
+  if (event.currentTarget.textContent === "×") window.lingostoryVoice?.interruptSpeech();
 });
 document.querySelectorAll(".path-btn").forEach((button) => {
   button.addEventListener("click", () => choosePath(button.dataset.path));
@@ -1632,7 +1705,10 @@ document.addEventListener("keydown", (event) => {
   if (editing) return;
   if (event.code === "Space") {
     event.preventDefault();
-    if (appMode === "live") $("turnInput").focus();
+    if (appMode === "live") {
+      if (window.lingostoryVoice) void window.lingostoryVoice.toggleRecording();
+      else $("turnInput").focus();
+    }
     else if (round >= 0) simulateListening();
   }
   if (appMode !== "live") {

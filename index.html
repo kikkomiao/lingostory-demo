@@ -84,14 +84,14 @@
               <div class="learning-policy">
                 <span aria-hidden="true">✦</span>
                 <div>
-                  <b>练习时不打断，故事后再精讲</b>
-                  <p>先像真实生活一样把话说完，结束后再集中分析语法、用词和表达自然度。</p>
+                  <b id="learningPolicyTitle">练习时不打断，故事后再精讲</b>
+                  <p id="learningPolicyDescription">先像真实生活一样把话说完，结束后再集中分析语法、用词和表达自然度。</p>
                 </div>
               </div>
               <div class="story-facts">
                 <span id="estimatedMinutes">约 3 分钟</span>
                 <span id="interactionModeLabel">语音模拟</span>
-                <span>多结局</span>
+                <span id="endingModeLabel">多结局</span>
               </div>
               <button id="startBtn" class="primary-btn" type="button">
                 开始挑战 <span>→</span>
@@ -120,8 +120,8 @@
               <section id="liveReviewNotice" class="live-review-notice hidden">
                 <span aria-hidden="true">✓</span>
                 <div>
-                  <b>真实剧情已完成并保存</b>
-                  <p>本轮 NPC 回复、分支与结局来自后端。学习评分接口将在下一里程碑接入。</p>
+                  <b id="liveReviewTitle">真实剧情已完成并保存</b>
+                  <p id="liveReviewDescription">本轮 NPC 回复、分支与结局来自后端。学习评分接口将在下一里程碑接入。</p>
                 </div>
               </section>
 
@@ -316,6 +316,6 @@
     <script src="./app.js"></script>
     <script src="./vendor/voice/ort.min.js"></script>
     <script src="./vendor/voice/vad.bundle.min.js"></script>
-    <script src="./voice.js"></script>
+    <script type="module" src="./voice.js"></script>
   </body>
 </html>

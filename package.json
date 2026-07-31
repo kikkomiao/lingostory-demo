@@ -4,6 +4,12 @@
   "type": "module",
   "scripts": {
     "dev": "node dev-server.mjs",
-    "check": "node --check app.js && node --check voice.js && node --check dev-server.mjs"
+    "check": "node --check app.js && node --check voice.js && node --check transcript.js && node --check dev-server.mjs && node --test tests/*.test.mjs",
+    "copy:voice": "node scripts/copy-voice-assets.mjs",
+    "postinstall": "npm run copy:voice"
+  },
+  "dependencies": {
+    "@ricky0123/vad-web": "0.0.30",
+    "onnxruntime-web": "1.22.0"
   }
 }

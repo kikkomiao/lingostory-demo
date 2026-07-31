@@ -9,28 +9,52 @@ const profiles = [
   ["cassie", "Cassie", "comingSoon", "Front-desk coordinator at a neighborhood community center"],
   ["mary", "Mary", "comingSoon", "Community library assistant and everyday conversation partner"],
   ["mike", "Mike", "comingSoon", "Customer support coordinator at a local office-supply company"],
-  ["kate", "Kate", "comingSoon", "Community library assistant who helps visitors find resources and practice everyday English"],
+  ["kate", "Kate", "available", "Japanese-speaking cabin crew member"],
   ["cyrus", "Cyrus", "available", "Senior executive at a large technology company"],
 ];
 
-function createSession() {
+function createSession({ japanese = false } = {}) {
   return {
     id: "fixture-session",
     sessionId: "fixture-session",
-    storyId: "lunch-mixup-cyrus-v1",
-    storyTitle: "The Lunch Mix-Up",
-    playerRole: "You are an employee.",
-    opening: "You discover the lunch mix-up as Cyrus walks toward the office.",
-    targetLanguage: "en",
-    activeNpc: { id: "cyrus", displayName: "Cyrus", emotionId: "neutral" },
-    currentBeatId: "intercept",
-    currentGoal: "Get Cyrus's attention before he reaches the lunch.",
-    currentHint: { level: 1, text: "Ask Cyrus to stop before explaining." },
+    storyId: japanese ? "japan-airport-checkin-kate-ja-v1" : "lunch-mixup-cyrus-v1",
+    storyTitle: japanese ? "日本の空港でチェックイン" : "The Lunch Mix-Up",
+    playerRole: japanese ? "あなたは東京から上海へ向かう旅客です。" : "You are an employee.",
+    opening: japanese
+      ? "東京の空港で、Kate が予約名を確認します。"
+      : "You discover the lunch mix-up as Cyrus walks toward the office.",
+    targetLanguage: japanese ? "ja" : "en",
+    activeNpc: {
+      id: japanese ? "kate" : "cyrus",
+      displayName: japanese ? "Kate" : "Cyrus",
+      emotionId: "neutral",
+      voiceProfile: japanese
+        ? {
+            provider: "qwen3-tts",
+            model: "Qwen3-TTS-12Hz-1.7B-CustomVoice",
+            voiceId: "ono_anna",
+            language: "Japanese",
+          }
+        : {
+            provider: "qwen3-tts",
+            model: "Qwen3-TTS-12Hz-1.7B-CustomVoice",
+            voiceId: "ryan",
+            language: "English",
+          },
+    },
+    currentBeatId: japanese ? "confirm_name" : "intercept",
+    currentGoal: japanese ? "予約の名前を Kate に伝える。" : "Get Cyrus's attention before he reaches the lunch.",
+    currentHint: { level: 1, text: japanese ? "自分の名前を短く伝えてください。" : "Ask Cyrus to stop before explaining." },
     presentation: {
       zhCN: {
-        opening: "你发现两份午饭拿反了，而 Cyrus 正走向办公室。",
-        currentGoal: "在 Cyrus 进门前叫住他。",
-        currentHint: { level: 1, text: "先明确请 Cyrus 停一下，再解释发生了什么。" },
+        opening: japanese
+          ? "你来到东京机场的值机柜台，Kate 请你说出预订姓名。"
+          : "你发现两份午饭拿反了，而 Cyrus 正走向办公室。",
+        currentGoal: japanese ? "告诉 Kate 你的预订姓名。" : "在 Cyrus 进门前叫住他。",
+        currentHint: {
+          level: 1,
+          text: japanese ? "简短说出自己的姓名。" : "先明确请 Cyrus 停一下，再解释发生了什么。",
+        },
       },
     },
     remainingTurns: 1,
@@ -56,6 +80,17 @@ async function readJson(request) {
 }
 
 function turnCopy(turnNumber) {
+  if (session.targetLanguage === "ja") {
+    return {
+      utterance:
+        turnNumber === 1
+          ? "ありがとうございます。お預けになる荷物はありますか。"
+          : "窓側と通路側、どちらがいいですか。",
+      stageText: "Kate confirms the check-in information.",
+      stageTextZh: "Kate 确认值机信息并继续下一项。",
+      emotionId: turnNumber === 1 ? "neutral" : "happy",
+    };
+  }
   if (turnNumber === 1) {
     return {
       utterance: "Okay, I'm stopping. What happened?",
@@ -75,11 +110,19 @@ function turnCopy(turnNumber) {
 function advanceSession(turnNumber, emotionId) {
   session.activeNpc.emotionId = emotionId;
   if (turnNumber !== 1) return;
-  session.currentBeatId = "explain_mixup";
-  session.currentGoal = "Explain what happened.";
-  session.currentHint = { level: 1, text: "Mention the two lunch boxes." };
-  session.presentation.zhCN.currentGoal = "解释两份午饭为什么拿错了。";
-  session.presentation.zhCN.currentHint = { level: 1, text: "说明两份午饭拿反了。" };
+  session.currentBeatId = session.targetLanguage === "ja" ? "confirm_baggage" : "explain_mixup";
+  session.currentGoal =
+    session.targetLanguage === "ja" ? "預ける荷物があるか、個数も答える。" : "Explain what happened.";
+  session.currentHint = {
+    level: 1,
+    text: session.targetLanguage === "ja" ? "荷物の有無と個数を伝えてください。" : "Mention the two lunch boxes.",
+  };
+  session.presentation.zhCN.currentGoal =
+    session.targetLanguage === "ja" ? "回答是否有托运行李，并说明数量。" : "解释两份午饭为什么拿错了。";
+  session.presentation.zhCN.currentHint = {
+    level: 1,
+    text: session.targetLanguage === "ja" ? "说明有无行李以及数量。" : "说明两份午饭拿反了。",
+  };
   session.remainingTurns = 2;
   session.progress = { current: 2, total: 6, percent: 33 };
 }
@@ -126,7 +169,15 @@ const server = createServer(async (request, response) => {
         displayName,
         status,
         supportedEmotions: emotions,
-        profile: { npcId: id, displayName, role },
+        profile: {
+          npcId: id,
+          displayName,
+          role,
+          voiceProfile:
+            id === "kate"
+              ? { voiceId: "ono_anna", language: "Japanese" }
+              : { voiceId: "ryan", language: "English" },
+        },
       })),
     });
   }
@@ -143,6 +194,22 @@ const server = createServer(async (request, response) => {
           status: "published",
           level: "B2-C1",
           estimatedMinutes: 7,
+          targetLanguage: "en",
+          createdAt: "2026-07-31T00:00:00.000Z",
+        },
+        {
+          id: "japan-airport-checkin-kate-ja-v1",
+          title: "日本の空港でチェックイン",
+          titleZh: "日本机场值机",
+          synopsis: "東京から上海へ出発する前に、簡単な質問に答えます。",
+          synopsisZh: "从东京飞往上海前，用简单日语回答 Kate 的值机问题并拿到登机牌。",
+          npc: "Kate",
+          npcId: "kate",
+          status: "published",
+          level: "JLPT N4–N3",
+          estimatedMinutes: 4,
+          targetLanguage: "ja",
+          createdAt: "2026-08-01T00:00:00.000Z",
         },
       ],
     });
@@ -166,6 +233,14 @@ const server = createServer(async (request, response) => {
     return json(response, 201, { session });
   }
   if (
+    url.pathname === "/api/stories/japan-airport-checkin-kate-ja-v1/playthroughs" &&
+    request.method === "POST"
+  ) {
+    session = createSession({ japanese: true });
+    turnResponses.clear();
+    return json(response, 201, { session });
+  }
+  if (
     url.pathname === "/api/playthroughs/fixture-session/turn" &&
     request.method === "POST"
   ) {
@@ -177,10 +252,12 @@ const server = createServer(async (request, response) => {
     const turnNumber = turnResponses.size + 1;
     const copy = turnCopy(turnNumber);
     const npc = {
-      id: "cyrus",
+      id: session.activeNpc.id,
+      name: session.activeNpc.displayName,
       utterance: copy.utterance,
       stageText: copy.stageText,
       emotionId: copy.emotionId,
+      voiceProfile: session.activeNpc.voiceProfile,
     };
     appendTurn(userText, copy, turnNumber);
     advanceSession(turnNumber, copy.emotionId);
@@ -210,7 +287,10 @@ const server = createServer(async (request, response) => {
       ".css": "text/css; charset=utf-8",
       ".html": "text/html; charset=utf-8",
       ".js": "text/javascript; charset=utf-8",
+      ".mjs": "text/javascript; charset=utf-8",
+      ".onnx": "application/octet-stream",
       ".png": "image/png",
+      ".wasm": "application/wasm",
     };
     response.writeHead(200, {
       "content-type": contentTypes[extname(filePath)] || "application/octet-stream",

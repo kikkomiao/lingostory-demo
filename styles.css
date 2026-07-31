@@ -160,6 +160,14 @@ a:focus-visible {
   object-position: center;
 }
 
+.experience.japanese-story .stage {
+  background: #dcecf2;
+}
+
+.experience.japanese-story .stage-bg {
+  opacity: 0;
+}
+
 .stage-wash {
   position: absolute;
   inset: 0;

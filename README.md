@@ -93,10 +93,12 @@ node scripts/fixture-server.mjs
 
 然后打开 `http://127.0.0.1:18892/`。
 
-## 真实语音链路（2026-07-31）
+## 真实语音与日语
 
 - 麦克风通过 Silero VAD 获取 16kHz 单声道语音帧，并保留 300ms pre-roll。
-- Qwen3-ASR WebSocket 流式转写，最终英文文本复用文本输入的 `/turn` 接口。
+- Qwen3-ASR WebSocket 流式转写，英语故事使用 English，日语故事使用 Japanese。
+- 日语无语言标记转写必须含平假名或片假名；明确标记为其他语言的候选会被过滤。
+- 最终转写复用文本输入的 `/turn` 接口；ASR、TTS 或麦克风不可用时仍可继续文本流程。
 - 大模型返回 NPC 回复后，按角色 `voiceProfile` 调用 Qwen3-TTS WebSocket。
 - TTS 下行 PCM 以 24kHz 单声道流式排队播放；再次点击麦克风会中断当前播报。
 - ASR/TTS 地址可通过 `window.LINGOSTORY_VOICE_CONFIG` 覆盖。
