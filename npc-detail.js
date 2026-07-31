@@ -74,23 +74,22 @@ const fallbackProfiles = {
   mary: {
     id: "mary",
     displayName: "Mary",
-    status: "available",
-    role: "Barista at a friendly neighborhood café",
-    roleZh: "友好社区咖啡店的咖啡师",
+    status: "comingSoon",
+    role: "Community library assistant and everyday conversation partner",
+    roleZh: "社区图书馆助理，也是你的日常会话伙伴",
     personality:
-      "Warm, patient, observant, and practical. Mary keeps first-time customers comfortable and never rushes a language learner.",
+      "Warm, observant, practical, and gently humorous. Mary listens carefully and admits mistakes.",
     relationship:
-      "Mary is the barista serving you while you order one drink at the café counter.",
+      "A familiar, supportive community acquaintance who remains professionally appropriate.",
     speakingStyle:
-      "Short, natural, friendly everyday English with clear café vocabulary and moderate pacing.",
+      "Natural, friendly everyday English with clear sentences and moderate pacing.",
     personalityZh:
-      "温暖、耐心、细心且务实。Mary 会让第一次点单的顾客感到轻松，也不会催促语言学习者。",
+      "温暖、细心、务实，带有温和的幽默感。Mary 会认真倾听，也愿意承认错误。",
     relationshipZh:
-      "Mary 是正在为你点单的咖啡师，你是在吧台购买一杯饮品的顾客。",
-    speakingStyleZh: "使用简短、自然、友好的日常英语，咖啡店词汇清楚，语速适中。",
+      "Mary 是你熟悉且支持你的社区联系人，同时保持合适的职业边界。",
+    speakingStyleZh: "使用清晰、自然、友好的日常英语，语速适中。",
     selectImage: "./npc/mary/Mary_00_grid_select.png",
     accent: "#d89a6a",
-    storyTitle: "在街角咖啡店点单",
   },
   cassie: {
     id: "cassie",
