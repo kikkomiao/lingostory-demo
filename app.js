@@ -48,6 +48,7 @@ const demoNpcLibrary = [
     storyDescription: "結衣的日语机场值机场景正在编排，故事确定后即可开放。",
     level: "故事待定",
     accent: "#cfe6ff",
+    background: "./kate-airport-background-v3.png",
     selectImage: "./npc/kate/Kate_00_grid_select.png",
     emotionAssets: {
       neutral: "./npc/kate/Kate_01_neutral.png",
