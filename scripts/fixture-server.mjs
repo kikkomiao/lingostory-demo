@@ -100,6 +100,58 @@ function createSession({ story = "cyrus" } = {}) {
 let session = createSession();
 const turnResponses = new Map();
 let reviewStatus = "not_started";
+const historyReviewResult = {
+  summaryZh: "表达清楚，解决方案具体，语气还可以更自然。",
+  confidence: "high",
+  limitationsZh: ["fixture 数据仅用于检查历史页呈现。"],
+  dimensions: [
+    ["comprehensibility", 4, "关键信息明确，对方能够理解。"],
+    ["grammar_control", 3, "句子结构基本稳定。"],
+    ["vocabulary_use", 3, "词汇能够支持任务完成。"],
+    ["naturalness", 2, "少量表达带有直译感。"],
+    ["coherence_concision", 3, "信息顺序清楚。"],
+    ["pragmatic_appropriacy", 3, "语气符合职场场景。"],
+  ].map(([id, level, rationaleZh]) => ({ id, level, rationaleZh, evidenceEventIds: ["history-user-1"] })),
+  strengths: [{ titleZh: "行动说得很具体", explanationZh: "你让对方清楚知道下一步会发生什么。", evidenceEventIds: ["history-user-1"] }],
+  priorities: [{ category: "naturalness", severity: "awkward_but_clear", titleZh: "减少直译感", explanationZh: "意思清楚，但可以使用更常见的口语搭配。", practiceTipZh: "练习用 by mistake 说明无意失误。", evidenceEventIds: ["history-user-1"] }],
+  examples: [{ eventId: "history-user-1", original: "I take your lunch by mistake.", minimalCorrection: "I took your lunch by mistake.", naturalAlternative: "I’m afraid I picked up your lunch by mistake.", explanationZh: "时态正确，并用缓和语气说明无意拿错。" }],
+  nextPracticeGoalZh: "失误后立即补充解决动作",
+};
+
+const historyItems = [
+  {
+    playthroughId: "history-1",
+    storyId: "lunch-mixup-cyrus-v1",
+    storyTitle: "The Lunch Mix-Up",
+    storyTitleZh: "拿错了老板的午饭",
+    npcId: "cyrus",
+    npcName: "Cyrus",
+    targetLanguage: "en",
+    ending: "good",
+    endingId: "resolved",
+    endingPresentation: { stamp: "危机解除", title: "你顺利完成了沟通", description: "Cyrus 接受了解释和解决方案。" },
+    turnCount: 3,
+    startedAt: "2026-08-01T02:00:00.000Z",
+    completedAt: "2026-08-01T02:06:00.000Z",
+    reviewStatus: "completed",
+  },
+  {
+    playthroughId: "history-2",
+    storyId: "whose-idea-cassie-en-v1",
+    storyTitle: "Whose Idea Was It?",
+    storyTitleZh: "这个想法是谁的？",
+    npcId: "cassie",
+    npcName: "Cassie",
+    targetLanguage: "en",
+    ending: "mixed",
+    endingId: "shared_record",
+    endingPresentation: { stamp: "记录已更新", title: "贡献终于被写清", description: "公开说明已经修改，正式分工仍需继续确认。" },
+    turnCount: 5,
+    startedAt: "2026-07-31T12:00:00.000Z",
+    completedAt: "2026-07-31T12:08:00.000Z",
+    reviewStatus: "pending",
+  },
+];
 
 function json(response, status, body) {
   response.writeHead(status, { "content-type": "application/json; charset=utf-8" });
@@ -371,6 +423,54 @@ const server = createServer(async (request, response) => {
       playerRole: "You are Cassie's peer and collaborator on a customer-retention proposal.",
       localization: { playerRole: "你是 Cassie 的同级同事，与她共同参与一项客户留存方案。" },
     });
+  }
+  if (url.pathname === "/api/playthroughs/history") {
+    return json(response, 200, {
+      items: historyItems,
+      total: historyItems.length,
+      nextCursor: null,
+    });
+  }
+  const historyDetailMatch = url.pathname.match(/^\/api\/playthroughs\/(history-[12])\/history-detail$/);
+  if (historyDetailMatch) {
+    const item = historyItems.find((entry) => entry.playthroughId === historyDetailMatch[1]);
+    const cassie = item.npcId === "cassie";
+    const review = item.reviewStatus === "completed"
+      ? { playthroughId: item.playthroughId, status: "completed", rubricVersion: "language-review-v2", retryable: false, result: historyReviewResult }
+      : { playthroughId: item.playthroughId, status: item.reviewStatus, rubricVersion: "language-review-v2", retryable: false };
+    return json(response, 200, {
+      playthroughId: item.playthroughId,
+      story: {
+        id: item.storyId,
+        title: item.storyTitle,
+        titleZh: item.storyTitleZh,
+        synopsisZh: cassie ? "在提交前厘清原创与执行贡献。" : "在 Cyrus 进办公室前处理拿错午饭的危机。",
+        targetLanguage: item.targetLanguage,
+        npcId: item.npcId,
+        npcName: item.npcName,
+      },
+      ending: { type: item.ending, id: item.endingId, presentation: item.endingPresentation },
+      turnCount: item.turnCount,
+      startedAt: item.startedAt,
+      completedAt: item.completedAt,
+      route: [
+        { index: 1, beatId: "intercept", goalZh: cassie ? "回应 Cassie，同时守住原创贡献。" : "在 Cyrus 进门前叫住他。", userLines: [{ eventId: "history-user-1", text: cassie ? "The record still needs to show where the idea came from." : "Could you stop for a moment, please?" }] },
+        { index: 2, beatId: "solution", goalZh: cassie ? "确认双方贡献并提出记录方案。" : "说明发生了什么并提出解决方案。", userLines: [{ eventId: "history-user-2", text: cassie ? "Let’s list the idea and execution separately." : "I picked up your lunch by mistake. I’ll replace it now." }], decision: { id: "take_responsibility", description: cassie ? "将原创和执行贡献分别写清" : "主动承担并立即补救", evidence: [] } },
+      ],
+      conversation: [
+        { id: "history-start", beatId: "intercept", type: "session_started", actor: "system", text: "Story started", presentation: { zhCN: { text: cassie ? "会议结束后，Cassie 希望你暂时不要更改公开记录。" : "你发现两份午饭拿反了，而 Cyrus 正走向办公室。" } }, createdAt: item.startedAt },
+        { id: "history-user-1", beatId: "intercept", type: "user_utterance", actor: "user", text: cassie ? "The record still needs to show where the idea came from." : "Could you stop for a moment, please?", createdAt: item.startedAt },
+        { id: "history-npc-1", beatId: "intercept", type: "npc_utterance", actor: "npc", text: cassie ? "You’re right. We should make the contributions explicit." : "Sure. What happened?", createdAt: item.startedAt },
+        { id: "history-action-1", beatId: "solution", type: "npc_action", actor: "npc", stageText: cassie ? "Cassie opens the public ownership record." : "Cyrus stops at the office door.", createdAt: item.completedAt },
+      ],
+      languageReview: review,
+    });
+  }
+  const historyReviewMatch = url.pathname.match(/^\/api\/playthroughs\/(history-[12])\/language-review$/);
+  if (historyReviewMatch && request.method === "POST") {
+    const item = historyItems.find((entry) => entry.playthroughId === historyReviewMatch[1]);
+    item.reviewStatus = "completed";
+    return json(response, 202, { playthroughId: item.playthroughId, status: "pending", rubricVersion: "language-review-v2", retryable: false });
   }
   if (
     url.pathname === "/api/stories/lunch-mixup-cyrus-v1/playthroughs" &&
