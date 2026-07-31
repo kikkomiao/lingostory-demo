@@ -318,15 +318,34 @@ const scoreProfiles = {
   bad: { fluency: 58, localness: 47, accuracy: 63 },
 };
 
+const languageDimensionMeta = {
+  comprehensibility: "可理解度",
+  grammar_control: "语法控制",
+  vocabulary_use: "词汇运用",
+  naturalness: "表达自然度",
+  coherence_concision: "连贯与简洁",
+  pragmatic_appropriacy: "语用得体度",
+};
+const reviewLevelLabels = ["证据不足", "起步", "可用", "稳定", "熟练"];
+const reviewConfidenceLabels = {
+  high: "评价证据充分",
+  medium: "评价证据中等",
+  low: "评价证据有限",
+};
+const reviewSeverityLabels = {
+  meaning_blocking: "影响理解",
+  awkward_but_clear: "意思清楚但不自然",
+  optional_upgrade: "进阶优化",
+};
+const REVIEW_POLL_INTERVAL_MS = 2000;
+const REVIEW_MAX_POLL_ATTEMPTS = 60;
+
 let round = -1;
 let timerId = null;
 let secondsLeft = 8;
 let currentPath = "good";
 let history = [];
 let listening = false;
-let reviewEntries = [];
-let coachStep = -1;
-let focusReviewIndex = 0;
 let appMode = "connecting";
 let apiReady = false;
 let liveSession = null;
@@ -337,6 +356,10 @@ let apiConnecting = false;
 let conversationModalTrigger = null;
 let conversationSessionId = null;
 let optimisticConversationEntries = [];
+let reviewPollTimer = null;
+let reviewRequestToken = 0;
+let reviewPollAttempts = 0;
+let reviewRetryMode = "check";
 
 const emotionAliases = {
   focused: "neutral",
@@ -845,6 +868,251 @@ function controllerFeedback(controller) {
   return "表达已提交，剧情正在继续";
 }
 
+function stopLanguageReviewPolling() {
+  reviewRequestToken += 1;
+  reviewPollAttempts = 0;
+  if (reviewPollTimer) clearTimeout(reviewPollTimer);
+  reviewPollTimer = null;
+}
+
+function setReviewMeta(state, label, detail, icon) {
+  const meta = $("reviewMeta");
+  meta.dataset.state = state;
+  $("reviewMetaIcon").textContent = icon;
+  $("reviewMetaLabel").textContent = label;
+  $("reviewMetaConfidence").textContent = detail;
+}
+
+function showLanguageReviewStatus(state, title, description, { loading = false, retryMode = null } = {}) {
+  const panel = $("languageReviewState");
+  panel.dataset.state = state;
+  panel.classList.remove("hidden");
+  $("reviewStateTitle").textContent = title;
+  $("reviewStateDescription").textContent = description;
+  $("reviewSkeleton").classList.toggle("hidden", !loading);
+  $("languageReviewContent").classList.add("hidden");
+
+  const retryButton = $("reviewRetryBtn");
+  reviewRetryMode = retryMode || "check";
+  retryButton.classList.toggle("hidden", !retryMode);
+  retryButton.textContent = retryMode === "retry" ? "重新生成复盘" : "重新检查";
+
+  if (state === "loading") {
+    setReviewMeta("loading", "正在生成复盘", "完成后会自动更新", "↻");
+  } else if (state === "failed") {
+    setReviewMeta("failed", "复盘暂未生成", "剧情结果不受影响", "!");
+  } else {
+    setReviewMeta("unavailable", "暂无学习复盘", "剧情结果已经保存", "—");
+  }
+}
+
+function createReviewTextElement(tagName, className, text) {
+  const element = document.createElement(tagName);
+  if (className) element.className = className;
+  element.textContent = text || "";
+  return element;
+}
+
+function renderInsightList(containerId, items, type) {
+  const container = $(containerId);
+  container.replaceChildren();
+  if (!items.length) {
+    const empty = createReviewTextElement(
+      "p",
+      "insight-item",
+      type === "strength" ? "本轮没有足够证据提炼稳定优势。" : "本轮没有需要优先纠正的问题。",
+    );
+    container.append(empty);
+    return;
+  }
+
+  items.forEach((item) => {
+    const article = document.createElement("article");
+    article.className = "insight-item";
+    const header = document.createElement("header");
+    header.append(createReviewTextElement("b", "", item.titleZh));
+    if (type === "priority") {
+      const severity = item.severity || "optional_upgrade";
+      header.append(
+        createReviewTextElement(
+          "span",
+          `severity-badge severity-${severity.replaceAll("_", "-")}`,
+          reviewSeverityLabels[severity] || "建议优化",
+        ),
+      );
+    }
+    article.append(header, createReviewTextElement("p", "", item.explanationZh));
+    if (type === "priority" && item.practiceTipZh) {
+      article.append(createReviewTextElement("small", "", `练习提示：${item.practiceTipZh}`));
+    }
+    container.append(article);
+  });
+}
+
+function renderLanguageReview(result) {
+  $("languageReviewState").classList.add("hidden");
+  $("languageReviewContent").classList.remove("hidden");
+  $("reviewSummary").textContent = result.summaryZh || "本轮复盘已生成。";
+  $("nextPracticeGoal").textContent = result.nextPracticeGoalZh || "继续在真实场景中完整表达意图。";
+
+  const confidenceLabel = reviewConfidenceLabels[result.confidence] || "评价证据有限";
+  setReviewMeta("completed", "复盘已生成", confidenceLabel, "✓");
+
+  const dimensionList = $("dimensionList");
+  dimensionList.replaceChildren();
+  const dimensions = Array.isArray(result.dimensions) ? result.dimensions : [];
+  dimensions.forEach((dimension) => {
+    const level = Number.isInteger(dimension.level) ? dimension.level : 0;
+    const article = document.createElement("article");
+    article.className = "dimension-item";
+    const header = document.createElement("div");
+    header.className = "dimension-head";
+    header.append(
+      createReviewTextElement("span", "dimension-name", languageDimensionMeta[dimension.id] || dimension.id),
+      createReviewTextElement(
+        "span",
+        "dimension-level",
+        level ? `${level} 级 · ${reviewLevelLabels[level]}` : reviewLevelLabels[0],
+      ),
+    );
+    const track = document.createElement("div");
+    track.className = "level-track";
+    track.setAttribute("aria-label", level ? `四级量表中的第 ${level} 级` : "证据不足，暂不评级");
+    for (let index = 1; index <= 4; index += 1) {
+      const segment = document.createElement("i");
+      segment.classList.toggle("active", index <= level);
+      track.append(segment);
+    }
+    article.append(header, track, createReviewTextElement("p", "", dimension.rationaleZh));
+    dimensionList.append(article);
+  });
+
+  renderInsightList("strengthList", Array.isArray(result.strengths) ? result.strengths : [], "strength");
+  renderInsightList("priorityList", Array.isArray(result.priorities) ? result.priorities : [], "priority");
+
+  const examples = Array.isArray(result.examples) ? result.examples : [];
+  $("examplesPanel").classList.toggle("hidden", examples.length === 0);
+  const exampleList = $("exampleList");
+  exampleList.replaceChildren();
+  examples.forEach((example) => {
+    const article = document.createElement("article");
+    article.className = "example-item";
+    const original = document.createElement("div");
+    original.className = "example-copy";
+    original.append(
+      createReviewTextElement("span", "", "你的原句"),
+      createReviewTextElement("p", "", example.original || "（未保留原句）"),
+    );
+    const correction = document.createElement("div");
+    correction.className = "example-copy corrected";
+    correction.append(
+      createReviewTextElement("span", "", "最小修改"),
+      createReviewTextElement("p", "", example.minimalCorrection || example.original),
+    );
+    const natural = document.createElement("div");
+    natural.className = "example-copy natural";
+    natural.append(
+      createReviewTextElement("span", "", "更自然的表达"),
+      createReviewTextElement("p", "", example.naturalAlternative || example.minimalCorrection),
+    );
+    article.append(
+      original,
+      correction,
+      natural,
+      createReviewTextElement("p", "example-explanation", example.explanationZh),
+    );
+    exampleList.append(article);
+  });
+
+  const limitations = Array.isArray(result.limitationsZh) ? result.limitationsZh : [];
+  $("reviewLimitations").classList.toggle("hidden", limitations.length === 0);
+  const limitationList = $("reviewLimitationList");
+  limitationList.replaceChildren();
+  limitations.forEach((limitation) => limitationList.append(createReviewTextElement("li", "", limitation)));
+}
+
+function scheduleLanguageReviewPoll(sessionId, token) {
+  reviewPollAttempts += 1;
+  if (reviewPollAttempts >= REVIEW_MAX_POLL_ATTEMPTS) {
+    showLanguageReviewStatus(
+      "failed",
+      "复盘还在后台生成",
+      "等待时间比预期更长。你可以稍后重新检查，刷新页面也不会丢失剧情。",
+      { retryMode: "check" },
+    );
+    return;
+  }
+  reviewPollTimer = setTimeout(() => {
+    void requestLanguageReview(sessionId, token, "GET");
+  }, REVIEW_POLL_INTERVAL_MS);
+}
+
+async function requestLanguageReview(sessionId, token, method = "GET") {
+  if (token !== reviewRequestToken) return;
+  try {
+    const response = await apiRequest(
+      `/api/playthroughs/${encodeURIComponent(sessionId)}/language-review`,
+      { method, body: method === "POST" ? JSON.stringify({}) : undefined, timeoutMs: 30000 },
+    );
+    if (token !== reviewRequestToken) return;
+
+    if (response.status === "not_started") {
+      await requestLanguageReview(sessionId, token, "POST");
+      return;
+    }
+    if (response.status === "pending" || response.status === "running") {
+      showLanguageReviewStatus(
+        "loading",
+        response.status === "running" ? "正在分析你的表达" : "复盘任务已经排队",
+        "故事结果已经保存。我们正在整理六维能力、改进重点和逐句建议。",
+        { loading: true },
+      );
+      scheduleLanguageReviewPoll(sessionId, token);
+      return;
+    }
+    if (response.status === "completed" && response.result) {
+      renderLanguageReview(response.result);
+      return;
+    }
+    if (response.status === "failed") {
+      showLanguageReviewStatus(
+        "failed",
+        "这次复盘没有生成成功",
+        "剧情与对话已经保存，可以直接重新生成复盘。",
+        { retryMode: response.retryable === false ? "check" : "retry" },
+      );
+      return;
+    }
+    showLanguageReviewStatus(
+      "unavailable",
+      "本轮暂时无法生成复盘",
+      "需要故事结束且至少有一句有效表达，才可以生成学习评价。",
+    );
+  } catch (error) {
+    if (token !== reviewRequestToken) return;
+    showLanguageReviewStatus(
+      "failed",
+      "暂时无法连接复盘服务",
+      `${localizedApiError(error)} 剧情结果和完整对话已经保存。`,
+      { retryMode: error.retryable === false ? "check" : method === "POST" ? "retry" : "check" },
+    );
+  }
+}
+
+function startLanguageReview({ forceRetry = false } = {}) {
+  const sessionId = liveSession?.sessionId || liveSession?.id;
+  if (!sessionId) return;
+  stopLanguageReviewPolling();
+  const token = reviewRequestToken;
+  showLanguageReviewStatus(
+    "loading",
+    forceRetry ? "正在重新生成复盘" : "正在整理你的表达",
+    "故事结果已经保存，复盘完成后会自动出现在这里。",
+    { loading: true },
+  );
+  void requestLanguageReview(sessionId, token, forceRetry ? "POST" : "GET");
+}
+
 function showLiveEnding(session) {
   clearInterval(timerId);
   liveSession = session;
@@ -865,14 +1133,14 @@ function showLiveEnding(session) {
     bad: {
       stamp: "惊险收尾",
       title: "故事结束了，但还有提升空间",
-      description: "后端状态机已经给出结局；学习评分将在下一里程碑接入。",
+      description: "故事已经收尾，复盘会告诉你下一次最值得先改什么。",
       color: "#ffd9e5",
       mood: "angry",
     },
     mixed: {
       stamp: "普通结局",
       title: "你完成了这段真实对话",
-      description: "本轮分支和结局均来自后端，稍后可继续补充学习复盘。",
+      description: "本轮分支和结局已经保存，学习复盘正在生成。",
       color: "#fff0a9",
       mood: "neutral",
     },
@@ -891,22 +1159,23 @@ function showLiveEnding(session) {
   $("endingStamp").style.background = copy.color;
   $("endingTitle").textContent = copy.title;
   $("endingDesc").textContent = copy.description;
-  $("endingOverlay").querySelector(".report-kicker").textContent = "STORY COMPLETE · 剧情结果";
-  $("reviewSuggestion").textContent = isJapanese
-    ? "本次日语 Demo 不生成学习复盘；你可以直接重新体验故事。"
-    : "剧情数据已保存；逐句评分、折线图和带练将在 P1 学习复盘接口接入后开放。";
-  $("liveReviewTitle").textContent = isJapanese
-    ? "日语值机流程已完成并保存"
-    : "真实剧情已完成并保存";
-  $("liveReviewDescription").textContent = isJapanese
-    ? "本轮采用固定成功结局，不排队生成英语学习复盘。"
-    : "本轮 NPC 回复、分支与结局来自后端。学习评分接口将在下一里程碑接入。";
+  $("endingOverlay").querySelector(".report-kicker").textContent = "STORY COMPLETE · 学习复盘";
+  $("nextPracticeGoal").textContent = "复盘生成后会给出一个明确目标。";
   $("retryBtn").textContent = "重新体验故事";
   setCharacter(normalizeEmotion(session.activeNpc?.emotionId || copy.mood));
-  $("liveReviewNotice").classList.remove("hidden");
-  $("endingOverlay").querySelector(".ending-card").classList.add("story-only");
+  $("endingOverlay").querySelector(".ending-card").classList.remove("story-only");
   document.querySelector(".experience").classList.add("review-mode");
   $("endingOverlay").classList.remove("hidden");
+  if (isJapanese) {
+    $("nextPracticeGoal").textContent = "本次日语 Demo 暂不生成学习复盘。";
+    showLanguageReviewStatus(
+      "unavailable",
+      "本次日语 Demo 不生成学习复盘",
+      "值机流程和完整对话已经保存，你可以直接重新体验故事。",
+    );
+  } else {
+    startLanguageReview();
+  }
 }
 
 function createClientTurnId() {
@@ -1451,7 +1720,6 @@ function showEnding() {
   clearInterval(timerId);
   $("endingOverlay").querySelector(".ending-card").classList.remove("story-only");
   $("endingOverlay").querySelector(".report-kicker").textContent = "STORY COMPLETE · 学习复盘";
-  $("liveReviewNotice").classList.add("hidden");
   const goodCount = history.filter((item) => item.path === "good").length;
   const badCount = history.filter((item) => item.path === "bad").length;
   $("progressFill").style.width = "100%";
@@ -1478,41 +1746,14 @@ function showEnding() {
     setCharacter("neutral");
   }
 
-  reviewEntries = history.map(scoreHistoryItem);
-  const fluency = averageScore(reviewEntries, "fluency");
-  const localness = averageScore(reviewEntries, "localness");
-  const accuracy = averageScore(reviewEntries, "accuracy");
-  const overall = Math.round((fluency + localness + accuracy) / 3);
-  const weakestIndex = reviewEntries.reduce(
-    (lowest, entry, index, entries) => (entry.score < entries[lowest].score ? index : lowest),
-    0,
-  );
-  focusReviewIndex = weakestIndex;
-  const weakestDimension = [
-    ["流畅度", fluency],
-    ["地道度", localness],
-    ["正确度", accuracy],
-  ].sort((a, b) => a[1] - b[1])[0][0];
-  const suggestions = {
-    流畅度: "先按语块跟读，再尝试一口气说完整句。",
-    地道度: "优先把“意思正确”升级为“这个场景里真的会这样说”。",
-    正确度: "重点留意句子结构和动作发生的时间。",
-  };
-
-  $("overallScore").textContent = String(overall);
-  $("overallScoreRing").style.setProperty("--score", String(overall));
-  $("fluencyScore").textContent = String(fluency);
-  $("localScore").textContent = String(localness);
-  $("accuracyScore").textContent = String(accuracy);
-  $("reviewSuggestion").textContent = suggestions[weakestDimension];
-  $("chartSummary").textContent =
-    `${rounds[reviewEntries[weakestIndex].round].state} 的总分最低，` +
-    `其中${weakestDimension}最值得优先加强。`;
-
-  selectFocusSentence(weakestIndex);
+  $("nextPracticeGoal").textContent = "连接真实剧情服务后，系统会根据你的实际表达生成练习目标。";
   document.querySelector(".experience").classList.add("review-mode");
   $("endingOverlay").classList.remove("hidden");
-  requestAnimationFrame(() => drawScoreTrendChart(weakestIndex));
+  showLanguageReviewStatus(
+    "unavailable",
+    "离线演示不生成学习评价",
+    "这里不再展示模拟分数。连接真实剧情服务后，会基于你的实际表达生成六维复盘。",
+  );
 }
 
 function resetStoryState() {
@@ -1522,17 +1763,16 @@ function resetStoryState() {
   currentPath = "good";
   secondsLeft = 8;
   listening = false;
-  reviewEntries = [];
-  coachStep = -1;
-  focusReviewIndex = 0;
   liveSession = null;
   conversationSessionId = null;
   optimisticConversationEntries = [];
   pendingTurn = null;
   submittingTurn = false;
+  stopLanguageReviewPolling();
   $("endingOverlay").classList.add("hidden");
   $("endingOverlay").querySelector(".ending-card").classList.remove("story-only");
-  $("liveReviewNotice").classList.add("hidden");
+  $("languageReviewState").classList.add("hidden");
+  $("languageReviewContent").classList.add("hidden");
   closeConversationModal({ restoreFocus: false });
   $("conversationPanel").disabled = true;
   $("conversationList").replaceChildren();
@@ -1628,31 +1868,8 @@ $("retryBtn").addEventListener("click", () => {
   clearStoredPlaythrough();
   resetStory();
 });
-$("listenBtn").addEventListener("click", () => {
-  $("listenBtn").textContent = "♪ 正在播放…";
-  $("coachStatus").textContent = "先听重音和停顿：不要逐词翻译。";
-  setTimeout(() => {
-    $("listenBtn").textContent = "▶ 再听一次";
-  }, 1100);
-});
-$("coachBtn").addEventListener("click", () => {
-  const chunks = [...document.querySelectorAll(".coach-chunk")];
-  if (!chunks.length) return;
-  if (coachStep >= chunks.length - 1) {
-    coachStep = -1;
-    chunks.forEach((chunk) => chunk.classList.remove("active", "done"));
-    $("coachStatus").textContent = "已重置。准备好后再跟读一遍。";
-    $("coachBtn").textContent = "再练一次";
-    return;
-  }
-
-  coachStep += 1;
-  chunks.forEach((chunk, index) => {
-    chunk.classList.toggle("active", index === coachStep);
-    chunk.classList.toggle("done", index < coachStep);
-  });
-  $("coachStatus").textContent = `跟读 ${coachStep + 1} / ${chunks.length}：${chunks[coachStep].textContent}`;
-  $("coachBtn").textContent = coachStep === chunks.length - 1 ? "带练完成 ✓" : "下一语块 →";
+$("reviewRetryBtn").addEventListener("click", () => {
+  startLanguageReview({ forceRetry: reviewRetryMode === "retry" });
 });
 $("micBtn").addEventListener("click", () => {
   if (appMode === "live") {
@@ -1669,7 +1886,7 @@ $("micBtn").addEventListener("click", () => {
 });
 $("turnForm").addEventListener("submit", (event) => {
   event.preventDefault();
-  submitLiveTurn($("turnInput").value);
+  submitLiveTurn($("turnInput").value, null, "text");
 });
 $("turnInput").addEventListener("keydown", (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
@@ -1717,12 +1934,6 @@ document.addEventListener("keydown", (event) => {
     if (event.key === "3") choosePath("bad");
   }
 });
-window.addEventListener("resize", () => {
-  if (document.querySelector(".experience").classList.contains("review-mode")) {
-    drawScoreTrendChart(focusReviewIndex);
-  }
-});
-
 renderNpcLibrary();
 applyActiveNpc();
 showNpcLibrary();

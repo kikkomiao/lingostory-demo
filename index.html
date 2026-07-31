@@ -109,19 +109,24 @@
                   <h2 id="endingTitle">你成功换回了午饭</h2>
                   <p id="endingDesc">Cyrus 接受了你的解决方案，你也用更自然的方式完成了道歉。</p>
                 </div>
-                <div id="overallScoreRing" class="overall-score" style="--score: 82">
+                <aside id="reviewMeta" class="review-meta" aria-live="polite">
+                  <span id="reviewMetaIcon" aria-hidden="true">…</span>
                   <div>
-                    <strong id="overallScore">82</strong>
-                    <span>本次总分</span>
+                    <b id="reviewMetaLabel">复盘准备中</b>
+                    <small id="reviewMetaConfidence">基于本轮真实表达</small>
                   </div>
-                </div>
+                </aside>
               </header>
 
-              <section id="liveReviewNotice" class="live-review-notice hidden">
-                <span aria-hidden="true">✓</span>
-                <div>
-                  <b id="liveReviewTitle">真实剧情已完成并保存</b>
-                  <p id="liveReviewDescription">本轮 NPC 回复、分支与结局来自后端。学习评分接口将在下一里程碑接入。</p>
+              <section id="languageReviewState" class="review-state hidden" aria-live="polite">
+                <div class="review-state-mark" aria-hidden="true">↻</div>
+                <div class="review-state-copy">
+                  <b id="reviewStateTitle">正在整理你的表达</b>
+                  <p id="reviewStateDescription">故事结果已经保存，复盘完成后会自动出现在这里。</p>
+                </div>
+                <button id="reviewRetryBtn" class="secondary-btn hidden" type="button">重新生成复盘</button>
+                <div id="reviewSkeleton" class="review-skeleton" aria-hidden="true">
+                  <i></i><i></i><i></i><i></i><i></i><i></i>
                 </div>
               </section>
 
@@ -133,66 +138,66 @@
                 <ol id="endingConversationList" class="conversation-list"></ol>
               </details>
 
-              <div class="review-grid">
-                <section class="trend-report">
-                  <div class="section-heading">
-                    <div>
-                      <span>完整对话</span>
-                      <h3>四轮表达得分趋势</h3>
-                    </div>
-                    <small>从剧情推进中看见变化</small>
-                  </div>
-                  <div class="trend-legend">
-                    <span><i class="legend-fluency"></i>流畅度 <b id="fluencyScore">84</b></span>
-                    <span><i class="legend-local"></i>地道度 <b id="localScore">76</b></span>
-                    <span><i class="legend-accuracy"></i>正确度 <b id="accuracyScore">88</b></span>
-                  </div>
-                  <div class="chart-shell">
-                    <canvas
-                      id="scoreTrendChart"
-                      width="760"
-                      height="340"
-                      role="img"
-                      aria-label="四轮对话的流畅度、地道度和正确度折线图"
-                    ></canvas>
-                  </div>
-                  <p id="chartSummary" class="chart-summary">前三轮表达稳定，收尾句的地道度下降，是本次最值得加强的位置。</p>
+              <div id="languageReviewContent" class="language-review-content hidden">
+                <section class="review-summary-card">
+                  <span>本轮表现</span>
+                  <p id="reviewSummary"></p>
                 </section>
 
-                <aside class="learning-sidebar">
-                  <section class="focus-card">
-                    <div class="focus-head">
+                <div class="review-layout">
+                  <section class="dimension-panel">
+                    <div class="section-heading">
                       <div>
-                        <span>本次重点加强</span>
-                        <h3 id="focusRound">S4 · 完成收尾</h3>
+                        <span>六维能力画像</span>
+                        <h3>这次表达处于什么水平</h3>
                       </div>
-                      <b id="focusScore">61</b>
+                      <small>每项 1–4 级，不换算百分制</small>
                     </div>
-                    <div class="review-block">
-                      <span>你的原句</span>
-                      <p id="originalLine">So… we are good?</p>
-                    </div>
-                    <div class="feedback-chips">
-                      <span id="grammarFeedback">语法：可以理解</span>
-                      <span id="vocabFeedback">用词：语气偏直接</span>
-                    </div>
-                    <p id="focusIssue" class="focus-issue">意思能被理解，但没有确认动作是否已经完成。</p>
-                    <div class="review-block recommended">
-                      <span>更自然的说法</span>
-                      <p id="upgradeLine">I’ve reordered it. It’ll be here in twenty minutes—sorry again.</p>
-                    </div>
-                    <div id="coachChunks" class="coach-chunks"></div>
-                    <p id="coachStatus" class="coach-status">先听整句，再分成语块跟读。</p>
-                    <div class="coach-actions">
-                      <button id="listenBtn" class="secondary-btn" type="button">▶ 听示范</button>
-                      <button id="coachBtn" class="primary-btn" type="button">开始带练</button>
-                    </div>
+                    <div id="dimensionList" class="dimension-list"></div>
                   </section>
-                </aside>
+
+                  <aside class="review-insights">
+                    <section class="insight-card strengths-card">
+                      <div class="section-heading compact">
+                        <div>
+                          <span>做得好的地方</span>
+                          <h3>继续保持</h3>
+                        </div>
+                      </div>
+                      <div id="strengthList" class="insight-list"></div>
+                    </section>
+
+                    <section class="insight-card priorities-card">
+                      <div class="section-heading compact">
+                        <div>
+                          <span>优先改进</span>
+                          <h3>下一次先改这些</h3>
+                        </div>
+                      </div>
+                      <div id="priorityList" class="insight-list"></div>
+                    </section>
+                  </aside>
+                </div>
+
+                <section id="examplesPanel" class="examples-panel">
+                  <div class="section-heading">
+                    <div>
+                      <span>逐句升级</span>
+                      <h3>保留原意，说得更自然</h3>
+                    </div>
+                    <small>优先看最值得修改的句子</small>
+                  </div>
+                  <div id="exampleList" class="example-list"></div>
+                </section>
+
+                <details id="reviewLimitations" class="review-limitations hidden">
+                  <summary>查看本次评价范围</summary>
+                  <ul id="reviewLimitationList"></ul>
+                </details>
               </div>
 
               <footer class="review-actions">
-                <p><b>建议：</b><span id="reviewSuggestion">重点练习“说明问题 + 给出行动”这一组表达。</span></p>
+                <p><b>下次练习目标：</b><span id="nextPracticeGoal">复盘生成后会给出一个明确目标。</span></p>
                 <button id="retryBtn" class="secondary-btn" type="button">重新体验故事</button>
               </footer>
             </div>
