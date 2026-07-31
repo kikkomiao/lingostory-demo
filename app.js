@@ -72,7 +72,8 @@ const demoNpcLibrary = [
     estimatedMinutes: 4,
     level: "A1–A2 · 英语",
     accent: "#f2a05f",
-    background: "./office-background-v2.png",
+    background: "./mike-cafe-background-v1.png",
+    backgroundAlt: "手绘风社区咖啡店吧台，咖啡机、点单区与临街座位沿斜向空间展开",
     selectImage: "./npc/mike/Mike_00_grid_select.png",
     emotionAssets: {
       neutral: "./npc/mike/Mike_01_neutral.png",
@@ -154,6 +155,7 @@ const npcPresentation = Object.fromEntries(
       availability: npc.availability,
       accent: npc.accent,
       background: npc.background,
+      backgroundAlt: npc.backgroundAlt,
       selectImage: npc.selectImage,
       emotionAssets: npc.emotionAssets,
     },
@@ -769,6 +771,7 @@ function normalizeApiNpc(apiNpc, story, presentationKey) {
     voiceProfile: profile.voiceProfile || apiNpc.voiceProfile || null,
     accent: presentation.accent,
     background: presentation.background,
+    backgroundAlt: presentation.backgroundAlt,
     selectImage: presentation.selectImage,
     emotionAssets: presentation.emotionAssets,
     supportedEmotions: Array.isArray(apiNpc.supportedEmotions)
@@ -1742,7 +1745,7 @@ function applyActiveNpc() {
     ? "日语机场值机故事背景"
     : isCantonese
       ? "粤语港铁问路故事背景"
-      : offline.backgroundAlt;
+      : activeNpc.backgroundAlt || offline.backgroundAlt;
   $("characterName").textContent = activeNpc.name;
   $("storyTitle").textContent = activeNpc.storyTitle;
   $("storyDescription").textContent = activeNpc.storyDescription;
