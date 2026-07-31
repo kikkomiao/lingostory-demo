@@ -43,15 +43,28 @@
 - 真实剧情结束时不展示假评分，等待 P1 学习复盘接口
 
 完整联调契约见 `docs/FRONTEND_BACKEND_INTEGRATION_API.md`，基于后端
-`main@e5d06b92` 的实测差异见 `docs/FRONTEND_BACKEND_GAP_ANALYSIS.md`。
+`main@ac17433` 的实测差异见 `docs/FRONTEND_BACKEND_GAP_ANALYSIS.md`。
 
 ## 本地使用
 
-直接双击 `index.html` 即可打开单文件离线 Demo，不依赖网络。
+直接双击 `index.html` 即可打开离线 Demo，不依赖网络。请保留
+`app.js`、`styles.css`、背景图和 `npc/` 资源目录的相对位置。
+
+真实 API 默认使用同源 `/api/*`。前后端分离部署时，需要在加载
+`app.js` 前注入：
+
+```html
+<script>
+  window.LINGOSTORY_API_BASE_URL = "https://your-api.example.com";
+</script>
+```
+
+同时需要由后端为前端域名配置 CORS；更推荐在同一域名下反向代理
+`/api/*`。
 
 ## 主要文件
 
-- `index.html`：可直接演示的单文件版本
+- `index.html`：页面结构与真实前端入口
 - `styles.css`：视觉系统与响应式布局
 - `app.js`：剧情状态机、真实 API 适配和离线回退
 - `npc/`：五位 NPC 的选择页与六种情绪素材

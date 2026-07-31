@@ -16,16 +16,17 @@ const demoNpcLibrary = [
     episode: "LINGOSTORY · EP.01",
     storyTitle: "拿错了老板的午饭",
     storyDescription: "开口推动剧情！你有 4 轮对话，在 Cyrus 走进办公室之前补救这场午餐危机。",
+    estimatedMinutes: 3,
     level: "A2–B1 · 职场沟通",
     accent: "#ffd95e",
-    selectImage: "/assets/npc/cyrus/Cyrus_00_grid_select.png",
+    selectImage: "./npc/cyrus/Cyrus_00_grid_select.png",
     emotionAssets: {
-      neutral: "/assets/npc/cyrus/Cyrus_01_neutral.png",
-      happy: "/assets/npc/cyrus/Cyrus_02_happy.png",
-      sad: "/assets/npc/cyrus/Cyrus_03_sad.png",
-      angry: "/assets/npc/cyrus/Cyrus_04_angry.png",
-      surprised: "/assets/npc/cyrus/Cyrus_05_surprised.png",
-      nervous: "/assets/npc/cyrus/Cyrus_06_nervous.png",
+      neutral: "./npc/cyrus/Cyrus_01_neutral.png",
+      happy: "./npc/cyrus/Cyrus_02_happy.png",
+      sad: "./npc/cyrus/Cyrus_03_sad.png",
+      angry: "./npc/cyrus/Cyrus_04_angry.png",
+      surprised: "./npc/cyrus/Cyrus_05_surprised.png",
+      nervous: "./npc/cyrus/Cyrus_06_nervous.png",
     },
   },
   {
@@ -33,21 +34,21 @@ const demoNpcLibrary = [
     source: "demo",
     availability: "comingSoon",
     name: "Kate",
-    role: "空姐 · 客舱乘务员",
+    role: "社区图书馆助理",
     storyId: null,
     episode: "专属剧情 · 待公布",
     storyTitle: "故事正在筹备中",
-    storyDescription: "Kate 的真实航空服务场景正在编排，故事确定后即可开放。",
+    storyDescription: "Kate 的图书馆服务与日常英语场景正在编排，故事确定后即可开放。",
     level: "故事待定",
     accent: "#cfe6ff",
-    selectImage: "/assets/npc/kate/Kate_00_grid_select.png",
+    selectImage: "./npc/kate/Kate_00_grid_select.png",
     emotionAssets: {
-      neutral: "/assets/npc/kate/Kate_01_neutral.png",
-      happy: "/assets/npc/kate/Kate_02_happy.png",
-      sad: "/assets/npc/kate/Kate_03_sad.png",
-      angry: "/assets/npc/kate/Kate_04_angry.png",
-      surprised: "/assets/npc/kate/Kate_05_surprised.png",
-      nervous: "/assets/npc/kate/Kate_06_nervous.png",
+      neutral: "./npc/kate/Kate_01_neutral.png",
+      happy: "./npc/kate/Kate_02_happy.png",
+      sad: "./npc/kate/Kate_03_sad.png",
+      angry: "./npc/kate/Kate_04_angry.png",
+      surprised: "./npc/kate/Kate_05_surprised.png",
+      nervous: "./npc/kate/Kate_06_nervous.png",
     },
   },
   {
@@ -55,21 +56,21 @@ const demoNpcLibrary = [
     source: "demo",
     availability: "comingSoon",
     name: "Mike",
-    role: "艺术家",
+    role: "办公用品公司客服协调员",
     storyId: null,
     episode: "专属剧情 · 待公布",
     storyTitle: "故事正在筹备中",
-    storyDescription: "Mike 的艺术生活场景正在编排，故事确定后即可开放。",
+    storyDescription: "Mike 的客户沟通与职场日常场景正在编排，故事确定后即可开放。",
     level: "故事待定",
     accent: "#f2a05f",
-    selectImage: "/assets/npc/mike/Mike_00_grid_select.png",
+    selectImage: "./npc/mike/Mike_00_grid_select.png",
     emotionAssets: {
-      neutral: "/assets/npc/mike/Mike_01_neutral.png",
-      happy: "/assets/npc/mike/Mike_02_happy.png",
-      sad: "/assets/npc/mike/Mike_03_sad.png",
-      angry: "/assets/npc/mike/Mike_04_angry.png",
-      surprised: "/assets/npc/mike/Mike_05_surprised.png",
-      nervous: "/assets/npc/mike/Mike_06_nervous.png",
+      neutral: "./npc/mike/Mike_01_neutral.png",
+      happy: "./npc/mike/Mike_02_happy.png",
+      sad: "./npc/mike/Mike_03_sad.png",
+      angry: "./npc/mike/Mike_04_angry.png",
+      surprised: "./npc/mike/Mike_05_surprised.png",
+      nervous: "./npc/mike/Mike_06_nervous.png",
     },
   },
   {
@@ -77,21 +78,21 @@ const demoNpcLibrary = [
     source: "demo",
     availability: "comingSoon",
     name: "Mary",
-    role: "咖啡店店员",
+    role: "社区图书馆助理 · 日常会话伙伴",
     storyId: null,
     episode: "专属剧情 · 待公布",
     storyTitle: "故事正在筹备中",
-    storyDescription: "Mary 的咖啡店生活场景正在编排，故事确定后即可开放。",
+    storyDescription: "Mary 的图书馆服务与日常会话场景正在编排，故事确定后即可开放。",
     level: "故事待定",
     accent: "#d89a6a",
-    selectImage: "/assets/npc/mary/Mary_00_grid_select.png",
+    selectImage: "./npc/mary/Mary_00_grid_select.png",
     emotionAssets: {
-      neutral: "/assets/npc/mary/Mary_01_neutral.png",
-      happy: "/assets/npc/mary/Mary_02_happy.png",
-      sad: "/assets/npc/mary/Mary_03_sad.png",
-      angry: "/assets/npc/mary/Mary_04_angry.png",
-      surprised: "/assets/npc/mary/Mary_05_surprised.png",
-      nervous: "/assets/npc/mary/Mary_06_nervous.png",
+      neutral: "./npc/mary/Mary_01_neutral.png",
+      happy: "./npc/mary/Mary_02_happy.png",
+      sad: "./npc/mary/Mary_03_sad.png",
+      angry: "./npc/mary/Mary_04_angry.png",
+      surprised: "./npc/mary/Mary_05_surprised.png",
+      nervous: "./npc/mary/Mary_06_nervous.png",
     },
   },
   {
@@ -99,21 +100,21 @@ const demoNpcLibrary = [
     source: "demo",
     availability: "comingSoon",
     name: "Cassie",
-    role: "美国高中生",
+    role: "社区中心前台协调员",
     storyId: null,
     episode: "专属剧情 · 待公布",
     storyTitle: "故事正在筹备中",
-    storyDescription: "Cassie 的校园生活场景正在编排，故事确定后即可开放。",
+    storyDescription: "Cassie 的社区活动与前台沟通场景正在编排，故事确定后即可开放。",
     level: "故事待定",
     accent: "#f6b1ca",
-    selectImage: "/assets/npc/cassie/Cassie_00_grid_select.png",
+    selectImage: "./npc/cassie/Cassie_00_grid_select.png",
     emotionAssets: {
-      neutral: "/assets/npc/cassie/Cassie_01_neutral.png",
-      happy: "/assets/npc/cassie/Cassie_02_happy.png",
-      sad: "/assets/npc/cassie/Cassie_03_sad.png",
-      angry: "/assets/npc/cassie/Cassie_04_angry.png",
-      surprised: "/assets/npc/cassie/Cassie_05_surprised.png",
-      nervous: "/assets/npc/cassie/Cassie_06_nervous.png",
+      neutral: "./npc/cassie/Cassie_01_neutral.png",
+      happy: "./npc/cassie/Cassie_02_happy.png",
+      sad: "./npc/cassie/Cassie_03_sad.png",
+      angry: "./npc/cassie/Cassie_04_angry.png",
+      surprised: "./npc/cassie/Cassie_05_surprised.png",
+      nervous: "./npc/cassie/Cassie_06_nervous.png",
     },
   },
 ];
@@ -134,6 +135,13 @@ const npcPresentation = Object.fromEntries(
     },
   ]),
 );
+
+const storyPresentation = {
+  "lunch-mixup-cyrus-v1": {
+    title: "拿错了老板的午饭",
+    synopsis: "在 Cyrus 走进办公室之前说明午餐拿错，并处理后续问题。",
+  },
+};
 
 let npcLibrary = demoNpcLibrary.map((npc) => ({ ...npc }));
 let activeNpc = npcLibrary[0];
@@ -424,33 +432,64 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function firstNonEmptyString(...values) {
+  return values.find((value) => typeof value === "string" && value.trim())?.trim();
+}
+
 function normalizeApiNpc(apiNpc, story, presentationKey) {
   const presentation = npcPresentation[presentationKey];
   const profile = apiNpc.profile || apiNpc;
+  const apiStatus = apiNpc.status || "available";
   const hasPublishedStory = Boolean(story && !["draft", "archived"].includes(story.status));
+  const canStartStory = apiStatus === "available" && hasPublishedStory;
+  const localizedStory = storyPresentation[story?.id] || {};
   const episode =
+    story?.episode ||
     story?.presentation?.episode ||
     (hasPublishedStory ? presentation.episode.replace("LINGOSTORY · ", "") : "专属剧情 · 待公布");
-  const level = story?.presentation?.level || presentation.level.split(" · ")[0];
-  const estimatedMinutes = story?.presentation?.estimatedMinutes || 3;
+  const level = story?.level || story?.presentation?.level || presentation.level.split(" · ")[0];
+  const estimatedMinutes =
+    story?.estimatedMinutes ?? story?.presentation?.estimatedMinutes ?? 3;
+  const storyTitle = firstNonEmptyString(
+    story?.titleZh,
+    story?.localization?.title,
+    story?.presentation?.zhCN?.title,
+    localizedStory.title,
+    story?.title,
+  );
+  const storyDescription = firstNonEmptyString(
+    story?.synopsisZh,
+    story?.localization?.synopsis,
+    story?.presentation?.zhCN?.synopsis,
+    localizedStory.synopsis,
+    story?.synopsis,
+  );
   return {
     id: apiNpc.id || profile.npcId || presentationKey,
     source: "api",
-    availability: hasPublishedStory ? "available" : "comingSoon",
+    availability: canStartStory
+      ? "available"
+      : apiStatus === "disabled"
+        ? "disabled"
+        : "comingSoon",
     name: apiNpc.displayName || profile.displayName || presentationKey,
     role: profile.role || presentation.role,
-    storyId: story?.id || null,
+    storyId: canStartStory ? story.id : null,
+    estimatedMinutes,
     episode: episode.startsWith("LINGOSTORY") ? episode : `LINGOSTORY · ${episode}`,
-    storyTitle: story?.title || "故事正在筹备中",
+    storyTitle: storyTitle || "故事正在筹备中",
     storyDescription:
-      story?.synopsis ||
+      storyDescription ||
       (hasPublishedStory
         ? `开口推动剧情！在 ${estimatedMinutes} 分钟的自然对话中完成这次沟通挑战。`
         : `${apiNpc.displayName || profile.displayName || presentationKey} 的专属故事正在编排，确定后即可开放。`),
-    level: hasPublishedStory ? `${level} · 真实剧情` : "故事待定",
+    level: canStartStory ? `${level} · 真实剧情` : "故事待定",
     accent: presentation.accent,
     selectImage: presentation.selectImage,
     emotionAssets: presentation.emotionAssets,
+    supportedEmotions: Array.isArray(apiNpc.supportedEmotions)
+      ? apiNpc.supportedEmotions.map(normalizeEmotion)
+      : Object.keys(presentation.emotionAssets),
   };
 }
 
@@ -465,20 +504,21 @@ function buildApiNpcLibrary(npcPayload, storyPayload) {
       (key) => key === String(apiId).toLowerCase() || key === displayName.toLowerCase(),
     );
     if (!presentationKey) return [];
-    const story = stories.find(
-      (item) =>
-        item.npcId === apiId ||
-        String(item.npc || "").toLowerCase() === displayName.toLowerCase() ||
-        String(item.npc || "").toLowerCase() === presentationKey,
+    const matchingStories = stories.filter(
+      (item) => {
+        if (item.npcId) return item.npcId === apiId;
+        const legacyNpcName = String(item.npc || "").toLowerCase();
+        return legacyNpcName === displayName.toLowerCase() || legacyNpcName === presentationKey;
+      },
     );
+    const story =
+      matchingStories.find((item) => item.status === "published") || matchingStories[0];
     return [normalizeApiNpc(apiNpc, story, presentationKey)];
   });
 }
 
-function latestSessionEvent(session, actor) {
-  return [...(session.events || [])]
-    .reverse()
-    .find((event) => event.actor === actor && (event.text || event.stageText));
+function latestSessionEvent(session, predicate) {
+  return [...(session.events || [])].reverse().find(predicate);
 }
 
 function setTurnBusy(busy) {
@@ -489,8 +529,24 @@ function setTurnBusy(busy) {
   $("transcriptBox").classList.toggle("processing", busy);
 }
 
+function localizedApiError(error) {
+  const messages = {
+    STORY_NOT_FOUND: "这个故事不存在或已被移除。",
+    STORY_NOT_PUBLISHED: "这个故事暂时不可开始。",
+    PLAYTHROUGH_NOT_FOUND: "没有找到上一次剧情记录，请重新开始。",
+    PLAYTHROUGH_ENDED: "这段剧情已经结束。",
+    INVALID_TURN: "这句话暂时无法提交，请检查后重试。",
+    TURN_PROCESSING_FAILED: "这一轮处理失败了，请稍后重试。",
+    MODEL_UNAVAILABLE: "AI 剧情服务暂时不可用，请稍后重试。",
+    RATE_LIMITED: "请求有点频繁，请稍后再试。",
+    INTERNAL_ERROR: "剧情服务暂时出了点问题，请稍后重试。",
+    REQUEST_TIMEOUT: "剧情服务响应超时，请稍后重试。",
+  };
+  return messages[error?.code] || error?.message || "这一轮暂时没有发送成功。";
+}
+
 function showTurnError(error) {
-  $("turnErrorText").textContent = error?.message || "这一轮暂时没有发送成功。";
+  $("turnErrorText").textContent = localizedApiError(error);
   $("turnError").classList.remove("hidden");
   $("retryTurnBtn").disabled = error?.retryable === false;
 }
@@ -518,26 +574,52 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   }
 
   const progress = session.progress;
-  const hint = typeof session.currentHint === "string" ? session.currentHint : session.currentHint?.text;
+  const localizedSession = session.presentation?.zhCN;
+  const currentHint = localizedSession?.currentHint || session.currentHint;
+  const hint = typeof currentHint === "string" ? currentHint : currentHint?.text;
   const beatLabel = session.currentBeatId ? String(session.currentBeatId).replaceAll("_", " ") : "当前剧情";
-  const latestNpcEvent = latestSessionEvent(session, "npc");
-  const latestUserEvent = latestSessionEvent(session, "user");
-  const replyText = npcReply?.utterance || latestNpcEvent?.text;
-  const replyStageText = npcReply?.stageText || latestNpcEvent?.stageText;
-  const replyEmotion = npcReply?.emotionId || latestNpcEvent?.emotionId || session.activeNpc?.emotionId;
+  const latestNpcUtterance = latestSessionEvent(
+    session,
+    (event) => event.actor === "npc" && Boolean(event.text),
+  );
+  const latestNpcAction = latestSessionEvent(
+    session,
+    (event) => event.actor === "npc" && Boolean(event.stageText),
+  );
+  const latestUserEvent = latestSessionEvent(
+    session,
+    (event) => event.actor === "user" && Boolean(event.text),
+  );
+  const replyText = npcReply?.utterance || latestNpcUtterance?.text;
+  const replyStageText =
+    npcReply?.stageText ||
+    latestNpcAction?.presentation?.zhCN?.stageText ||
+    latestNpcAction?.stageText;
+  const replyEmotion =
+    npcReply?.emotionId ||
+    latestNpcUtterance?.emotionId ||
+    latestNpcAction?.emotionId ||
+    session.activeNpc?.emotionId;
+  const replyTranslation =
+    npcReply?.translationZh || latestNpcUtterance?.presentation?.zhCN?.text || "";
 
   $("roundLabel").textContent = `${beatLabel} · 沟通目标`;
   $("roundCount").textContent = progress?.total
     ? `${progress.current ?? 1} / ${progress.total}`
     : `${session.remainingTurns ?? "动态"} 回合`;
   $("progressFill").style.width = progress?.percent == null ? "0%" : `${clampScore(progress.percent)}%`;
-  $("taskTitle").textContent = session.currentGoal || "继续自然地推动剧情";
+  $("taskTitle").textContent =
+    localizedSession?.currentGoal || session.currentGoal || "继续自然地推动剧情";
   $("taskHint").textContent = hint || "表达你的真实意图，系统会在故事结束后集中复盘。";
   $("sceneLabel").textContent = `真实剧情 · ${beatLabel}`;
   $("speakerName").textContent = replyText ? activeNpc.name : "旁白";
-  $("subtitle").textContent = replyText || session.opening || "轮到你了。用自己的方式推动剧情。";
-  $("translation").textContent = npcReply?.translationZh || "";
-  $("translation").classList.toggle("hidden", !npcReply?.translationZh);
+  $("subtitle").textContent =
+    replyText ||
+    localizedSession?.opening ||
+    session.opening ||
+    "轮到你了。用自己的方式推动剧情。";
+  $("translation").textContent = replyTranslation;
+  $("translation").classList.toggle("hidden", !replyTranslation);
   $("transcript").textContent = userText || latestUserEvent?.text || "输入你的英文表达，它会出现在这里…";
   $("crisisBadge").textContent = replyStageText || "剧情正在变化";
   $("crisisBadge").classList.toggle("visible", Boolean(replyStageText));
@@ -647,7 +729,7 @@ async function startLiveStory() {
     renderLiveSession(session);
     $("turnInput").focus();
   } catch (error) {
-    $("introModeHint").textContent = `暂时无法开始：${error.message}`;
+    $("introModeHint").textContent = `暂时无法开始：${localizedApiError(error)}`;
   } finally {
     $("startBtn").disabled = false;
     $("startBtn").innerHTML = '开始挑战 <span>→</span>';
@@ -669,7 +751,9 @@ async function restorePlaythrough() {
     renderLiveSession(session);
     return true;
   } catch (error) {
-    if (error.status === 404) clearStoredPlaythrough();
+    if (error.status === 404 || error.code === "PLAYTHROUGH_NOT_FOUND") {
+      clearStoredPlaythrough();
+    }
     return false;
   }
 }
@@ -689,14 +773,17 @@ async function initializeData() {
       apiRequest("/api/stories", { timeoutMs: API_DISCOVERY_TIMEOUT_MS }),
     ]);
     const apiLibrary = buildApiNpcLibrary(npcPayload, storyPayload);
-    if (!apiLibrary.length) throw new Error("后端暂未提供可展示的 Cyrus 剧情");
+    const defaultApiNpc = apiLibrary.find(
+      (npc) => npc.availability === "available" && npc.storyId,
+    );
+    if (!defaultApiNpc) throw new Error("后端暂未提供可体验的公开剧情");
     if (userSelectedNpc) {
       setConnectionState("demo", "本轮离线演示");
       return;
     }
 
     npcLibrary = apiLibrary;
-    activeNpc = npcLibrary[0];
+    activeNpc = defaultApiNpc;
     apiReady = true;
     renderNpcLibrary();
     applyActiveNpc();
@@ -724,6 +811,18 @@ function renderNpcLibrary() {
 
   npcLibrary.forEach((npc) => {
     const isPlayable = npc.availability === "available" && Boolean(npc.storyId);
+    const emotionLabels = {
+      neutral: "中性",
+      happy: "开心",
+      sad: "难过",
+      angry: "生气",
+      nervous: "紧张",
+      surprised: "惊讶",
+    };
+    const supportedEmotionLabels = (npc.supportedEmotions || Object.keys(emotionLabels))
+      .filter((emotion) => emotionLabels[emotion])
+      .map((emotion) => `<span>${emotionLabels[emotion]}</span>`)
+      .join("");
     const card = document.createElement("article");
     card.className = `npc-card${isPlayable ? "" : " is-coming-soon"}`;
     card.dataset.npcId = npc.id;
@@ -745,8 +844,7 @@ function renderNpcLibrary() {
         }</span>
         <p class="npc-story-title">${escapeHtml(npc.storyTitle)}</p>
         <div class="npc-emotions" aria-label="支持的剧情情绪">
-          <span>中性</span><span>开心</span><span>难过</span>
-          <span>生气</span><span>紧张</span><span>惊讶</span>
+          ${supportedEmotionLabels}
         </div>
         <button
           class="npc-enter"
@@ -767,6 +865,9 @@ function applyActiveNpc() {
   $("storyEpisode").textContent = activeNpc.episode;
   $("storyTitle").textContent = activeNpc.storyTitle;
   $("storyDescription").textContent = activeNpc.storyDescription;
+  $("estimatedMinutes").textContent = `约 ${activeNpc.estimatedMinutes || 3} 分钟`;
+  $("interactionModeLabel").textContent =
+    activeNpc.source === "api" ? "文本互动" : "语音模拟";
   $("character").alt = `${activeNpc.name} 的中性情绪立绘`;
   setCharacter("neutral");
 }

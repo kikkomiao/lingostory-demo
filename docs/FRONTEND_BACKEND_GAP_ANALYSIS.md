@@ -1,10 +1,31 @@
 # LingoStory 前后端实测差异与联调清单
 
-> 对照日期：2026-07-31
-> 前端：`codex/frontend-api-integration`
-> 后端：`chenjingyin/lingostory` `main@e5d06b92`
+> 最新复核：2026-07-31
+> 前端：`codex/frontend-api-integration@0519647`
+> 后端：`chenjingyin/lingostory` `main@ac17433`
 
-## 1. 当前结论
+## 0. 最新状态
+
+后端当前版本已经补齐旧基线中缺失的 Cyrus、稳定 `npcId`、公开
+`emotionId`、`progress` 和统一错误码。前端已同步完成：
+
+- 使用顶层 `story.level`、`story.estimatedMinutes`，同时兼容旧嵌套结构。
+- 优先使用稳定 `npcId` 关联故事；仅在旧响应没有 `npcId` 时按显示名兼容。
+- 同时检查 NPC `status` 和已发布故事，`comingSoon` 不会被错误开放。
+- 刷新恢复时分别读取 `npc_utterance` 和 `npc_action`，不再丢失最近台词。
+- 消费 `synopsisZh`、`session.presentation.zhCN` 等可用中文展示字段。
+- 根据稳定错误码给出中文提示，并保留同一 `clientTurnId` 重试。
+
+仍需后端或部署侧配合：
+
+- 为内置 Cyrus 故事补齐中文本地化；当前仍可能回退到前端已知故事文案。
+- 如需 NPC 回复翻译，回合响应补可选 `npc.translationZh`。
+- 确定同源反代或严格 CORS 白名单。
+- P1 增加 `/api/playthroughs/:id/review`。
+
+以下章节保留为 `e5d06b92` 旧基线的历史记录。
+
+## 1. 旧基线结论
 
 后端已经具备 P0 剧情主链路，前端也已经完成对应调用和离线回退。现在不能直接进入 Cyrus 真实剧情的首要原因不是“缺少整套接口”，而是：
 
