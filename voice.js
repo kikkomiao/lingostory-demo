@@ -1,4 +1,10 @@
 import { cleanTranscript, targetLanguageConfig } from "./transcript.js";
+import {
+  buildTtsSessionConfig,
+  buildTtsTextInput,
+  PcmStartupBuffer,
+  TTS_SAMPLE_RATE,
+} from "./voice-tts.js";
 
 const config = {
   asrUrl:
@@ -150,6 +156,9 @@ class PcmPlayer {
     this.context = null;
     this.nextStart = 0;
     this.sources = new Set();
+    this.startupBuffer = new PcmStartupBuffer({
+      onChunk: (data) => this.schedule(data),
+    });
   }
 
   async resume() {
@@ -158,10 +167,18 @@ class PcmPlayer {
   }
 
   enqueue(data) {
+    this.startupBuffer.enqueue(data);
+  }
+
+  complete() {
+    this.startupBuffer.complete();
+  }
+
+  schedule(data) {
     if (!this.context) return;
     const view = new DataView(data);
     const sampleCount = Math.floor(data.byteLength / 2);
-    const buffer = this.context.createBuffer(1, sampleCount, 24_000);
+    const buffer = this.context.createBuffer(1, sampleCount, TTS_SAMPLE_RATE);
     const channel = buffer.getChannelData(0);
     for (let index = 0; index < sampleCount; index += 1) {
       channel[index] = view.getInt16(index * 2, true) / 0x8000;
@@ -177,6 +194,7 @@ class PcmPlayer {
   }
 
   stop() {
+    this.startupBuffer.reset();
     for (const source of this.sources) {
       try {
         source.stop();
@@ -304,27 +322,35 @@ class VoiceController {
         const socket = new WebSocket(config.ttsUrl);
         socket.binaryType = "arraybuffer";
         this.ttsSocket = socket;
-        const timeout = setTimeout(() => reject(new Error("TTS 连接超时")), 15_000);
+        let completed = false;
+        let settled = false;
+        const resolveOnce = () => {
+          if (settled) return;
+          settled = true;
+          resolve();
+        };
+        const rejectOnce = (error) => {
+          if (settled) return;
+          settled = true;
+          this.player.stop();
+          reject(error);
+        };
+        const timeout = setTimeout(() => {
+          socket.close();
+          rejectOnce(new Error("TTS 连接超时"));
+        }, 15_000);
         socket.onopen = () => {
           clearTimeout(timeout);
           if (generation !== this.speechGeneration) {
             socket.close();
-            resolve();
+            resolveOnce();
             return;
           }
-          socket.send(
-            JSON.stringify({
-              type: "session.config",
-              model: profile.model || "Qwen3-TTS-12Hz-1.7B-CustomVoice",
-              voice: profile.voiceId,
-              task_type: "CustomVoice",
-              language: profile.language || targetLanguageConfig[this.targetLanguage].providerLanguage,
-              response_format: "pcm",
-              stream_audio: true,
-              max_new_tokens: 1024,
-            }),
-          );
-          socket.send(JSON.stringify({ type: "input.text", text }));
+          socket.send(JSON.stringify(buildTtsSessionConfig(
+            profile,
+            targetLanguageConfig[this.targetLanguage].providerLanguage,
+          )));
+          socket.send(JSON.stringify(buildTtsTextInput(text)));
           socket.send(JSON.stringify({ type: "input.done" }));
         };
         socket.onmessage = (event) => {
@@ -336,21 +362,29 @@ class VoiceController {
           try {
             const message = JSON.parse(String(event.data));
             if (message.type === "session.done") {
+              completed = true;
+              this.player.complete();
               socket.close();
               this.callbacks.onState("ready", "可以继续说话");
-              resolve();
+              resolveOnce();
             } else if (message.type === "error") {
-              reject(new Error(message.message || "TTS 服务异常"));
+              socket.close();
+              rejectOnce(new Error(message.message || "TTS 服务异常"));
             }
           } catch {
-            reject(new Error("TTS 返回了无法解析的消息"));
+            socket.close();
+            rejectOnce(new Error("TTS 返回了无法解析的消息"));
           }
         };
-        socket.onerror = () => reject(new Error("TTS WebSocket 连接失败"));
+        socket.onerror = () => rejectOnce(new Error("TTS WebSocket 连接失败"));
         socket.onclose = () => {
           clearTimeout(timeout);
           if (this.ttsSocket === socket) this.ttsSocket = null;
-          resolve();
+          if (completed || generation !== this.speechGeneration) {
+            resolveOnce();
+          } else {
+            rejectOnce(new Error("TTS 连接意外关闭"));
+          }
         };
       });
     } catch (error) {
