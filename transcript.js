@@ -94,7 +94,7 @@ export const targetLanguageConfig = {
   yue: { providerLanguage: "Cantonese", displayNameZh: "粤语" },
 };
 
-const MTR_STORY_ID = "hong-kong-mtr-directions-mike-yue-v4";
+const MTR_STORY_ID = "hong-kong-mtr-directions-mary-yue-v1";
 const MTR_RECOGNITION_CONTEXT = {
   state_destination: {
     context: "香港港鐵問路。遊客身處天后站，想去中環。",
