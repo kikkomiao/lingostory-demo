@@ -10,7 +10,32 @@
     <title>LingoStory · 用真实剧情练口语</title>
     <link rel="stylesheet" href="./styles.css">
   </head>
-  <body>
+  <body class="game-entry-open">
+    <button
+      id="gameEntry"
+      class="game-entry"
+      type="button"
+      aria-label="点击任意地方进入 LingoStory 学习"
+      aria-describedby="gameEntryGuide"
+    >
+      <img
+        class="game-entry-background"
+        src="./assets/marketing/game-entry-office-wide.png"
+        alt=""
+        aria-hidden="true"
+        fetchpriority="high"
+      />
+      <span class="game-entry-shade" aria-hidden="true"></span>
+      <span class="game-entry-title">
+        <img src="./assets/brand/lingostory-wordmark-white.png" alt="LingoStory" />
+      </span>
+      <span id="gameEntryGuide" class="game-entry-guide">
+        <span aria-hidden="true">→</span>
+        点击任意地方进入学习
+        <span aria-hidden="true">←</span>
+      </span>
+    </button>
+
     <main class="app-shell">
       <header class="topbar">
         <a id="brandHome" class="brand" href="#" aria-label="返回 NPC 角色库">

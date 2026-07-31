@@ -2186,6 +2186,24 @@ $("closeConversationModal").addEventListener("click", () => closeConversationMod
 $("conversationModal").addEventListener("click", (event) => {
   if (event.target === event.currentTarget) closeConversationModal();
 });
+
+const gameEntry = $("gameEntry");
+const forceGameEntry = new URLSearchParams(window.location.search).get("welcome") === "1";
+if (REQUESTED_NPC_ID && !forceGameEntry) {
+  gameEntry.classList.add("hidden");
+  document.body.classList.remove("game-entry-open");
+} else {
+  gameEntry.addEventListener(
+    "click",
+    () => {
+      gameEntry.classList.add("is-leaving");
+      document.body.classList.remove("game-entry-open");
+      window.setTimeout(() => gameEntry.classList.add("hidden"), 430);
+    },
+    { once: true },
+  );
+}
+
 $("apiRetryBtn").addEventListener("click", () => {
   userSelectedNpc = false;
   initializeData({ force: true });
