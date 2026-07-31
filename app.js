@@ -1141,12 +1141,13 @@ function stopLanguageReviewPolling() {
   reviewPollTimer = null;
 }
 
-function setReviewMeta(state, label, detail, icon) {
-  const meta = $("reviewMeta");
-  meta.dataset.state = state;
-  $("reviewMetaIcon").textContent = icon;
-  $("reviewMetaLabel").textContent = label;
-  $("reviewMetaConfidence").textContent = detail;
+function setReviewStatus(state, label, detail, icon) {
+  const panel = $("languageReviewState");
+  panel.dataset.state = state;
+  panel.classList.remove("hidden");
+  $("reviewStateTitle").textContent = label;
+  $("reviewStateDescription").textContent = detail;
+  panel.querySelector(".review-state-mark").textContent = icon;
 }
 
 function showLanguageReviewStatus(state, title, description, { loading = false, retryMode = null } = {}) {
@@ -1164,11 +1165,11 @@ function showLanguageReviewStatus(state, title, description, { loading = false, 
   retryButton.textContent = retryMode === "retry" ? "重新生成复盘" : "重新检查";
 
   if (state === "loading") {
-    setReviewMeta("loading", "正在生成复盘", "完成后会自动更新", "↻");
+    setReviewStatus("loading", title, description, "↻");
   } else if (state === "failed") {
-    setReviewMeta("failed", "复盘暂未生成", "剧情结果不受影响", "!");
+    setReviewStatus("failed", title, description, "!");
   } else {
-    setReviewMeta("unavailable", "暂无学习复盘", "剧情结果已经保存", "—");
+    setReviewStatus("unavailable", title, description, "·");
   }
 }
 
@@ -1177,6 +1178,13 @@ function createReviewTextElement(tagName, className, text) {
   if (className) element.className = className;
   element.textContent = text || "";
   return element;
+}
+
+function compactReviewText(value, maxLength) {
+  const characters = Array.from(String(value || "").trim());
+  return characters.length > maxLength
+    ? `${characters.slice(0, maxLength).join("")}…`
+    : characters.join("");
 }
 
 function renderInsightList(containerId, items, type) {
@@ -1192,11 +1200,11 @@ function renderInsightList(containerId, items, type) {
     return;
   }
 
-  items.forEach((item) => {
+  items.slice(0, 1).forEach((item) => {
     const article = document.createElement("article");
     article.className = "insight-item";
     const header = document.createElement("header");
-    header.append(createReviewTextElement("b", "", item.titleZh));
+    header.append(createReviewTextElement("b", "", compactReviewText(item.titleZh, 30)));
     if (type === "priority") {
       const severity = item.severity || "optional_upgrade";
       header.append(
@@ -1207,22 +1215,39 @@ function renderInsightList(containerId, items, type) {
         ),
       );
     }
-    article.append(header, createReviewTextElement("p", "", item.explanationZh));
+    article.append(
+      header,
+      createReviewTextElement("p", "", compactReviewText(item.explanationZh, 60)),
+    );
     if (type === "priority" && item.practiceTipZh) {
-      article.append(createReviewTextElement("small", "", `练习提示：${item.practiceTipZh}`));
+      article.append(
+        createReviewTextElement(
+          "small",
+          "",
+          `练习提示：${compactReviewText(item.practiceTipZh, 50)}`,
+        ),
+      );
     }
     container.append(article);
   });
 }
 
 function renderLanguageReview(result) {
-  $("languageReviewState").classList.add("hidden");
   $("languageReviewContent").classList.remove("hidden");
-  $("reviewSummary").textContent = result.summaryZh || "本轮复盘已生成。";
-  $("nextPracticeGoal").textContent = result.nextPracticeGoalZh || "继续在真实场景中完整表达意图。";
+  $("reviewSummary").textContent = compactReviewText(
+    result.summaryZh || "本轮复盘已生成。",
+    45,
+  );
+  $("nextPracticeGoal").textContent = compactReviewText(
+    result.nextPracticeGoalZh || "继续在真实场景中完整表达意图。",
+    30,
+  );
 
   const confidenceLabel = reviewConfidenceLabels[result.confidence] || "评价证据有限";
-  setReviewMeta("completed", "复盘已生成", confidenceLabel, "✓");
+  setReviewStatus("completed", "复盘完成，已提炼 3 条关键建议", confidenceLabel, "✓");
+  $("reviewSkeleton").classList.add("hidden");
+  $("reviewRetryBtn").classList.add("hidden");
+  $("reviewDetails").removeAttribute("open");
 
   const dimensionList = $("dimensionList");
   dimensionList.replaceChildren();
@@ -1253,10 +1278,10 @@ function renderLanguageReview(result) {
     dimensionList.append(article);
   });
 
-  renderInsightList("strengthList", Array.isArray(result.strengths) ? result.strengths : [], "strength");
-  renderInsightList("priorityList", Array.isArray(result.priorities) ? result.priorities : [], "priority");
+  renderInsightList("strengthList", Array.isArray(result.strengths) ? result.strengths.slice(0, 1) : [], "strength");
+  renderInsightList("priorityList", Array.isArray(result.priorities) ? result.priorities.slice(0, 1) : [], "priority");
 
-  const examples = Array.isArray(result.examples) ? result.examples : [];
+  const examples = Array.isArray(result.examples) ? result.examples.slice(0, 1) : [];
   $("examplesPanel").classList.toggle("hidden", examples.length === 0);
   const exampleList = $("exampleList");
   exampleList.replaceChildren();
@@ -1269,12 +1294,6 @@ function renderLanguageReview(result) {
       createReviewTextElement("span", "", "你的原句"),
       createReviewTextElement("p", "", example.original || "（未保留原句）"),
     );
-    const correction = document.createElement("div");
-    correction.className = "example-copy corrected";
-    correction.append(
-      createReviewTextElement("span", "", "最小修改"),
-      createReviewTextElement("p", "", example.minimalCorrection || example.original),
-    );
     const natural = document.createElement("div");
     natural.className = "example-copy natural";
     natural.append(
@@ -1283,9 +1302,12 @@ function renderLanguageReview(result) {
     );
     article.append(
       original,
-      correction,
       natural,
-      createReviewTextElement("p", "example-explanation", example.explanationZh),
+      createReviewTextElement(
+        "p",
+        "example-explanation",
+        compactReviewText(example.explanationZh, 60),
+      ),
     );
     exampleList.append(article);
   });
@@ -1329,8 +1351,10 @@ async function requestLanguageReview(sessionId, token, method = "GET") {
     if (response.status === "pending" || response.status === "running") {
       showLanguageReviewStatus(
         "loading",
-        response.status === "running" ? "正在分析你的表达" : "复盘任务已经排队",
-        "故事结果已经保存。我们正在整理六维能力、改进重点和逐句建议。",
+        response.status === "running"
+          ? "AI 正在整理本局的 3 条关键建议"
+          : "复盘任务已经排队",
+        "故事结果已经保存，你可以先回看结局。",
         { loading: true },
       );
       scheduleLanguageReviewPoll(sessionId, token);
@@ -1372,11 +1396,33 @@ function startLanguageReview({ forceRetry = false } = {}) {
   const token = reviewRequestToken;
   showLanguageReviewStatus(
     "loading",
-    forceRetry ? "正在重新生成复盘" : "正在整理你的表达",
-    "故事结果已经保存，复盘完成后会自动出现在这里。",
+    forceRetry ? "正在重新生成 3 条关键建议" : "AI 正在整理本局的 3 条关键建议",
+    "故事结果已经保存，你可以先回看结局。",
     { loading: true },
   );
   void requestLanguageReview(sessionId, token, forceRetry ? "POST" : "GET");
+}
+
+function configureEndingPoster(session, stamp) {
+  const languageName = {
+    en: "英语",
+    ja: "日语",
+    yue: "粤语",
+  }[session?.targetLanguage || activeNpc.targetLanguage] || "目标语言";
+  const events = Array.isArray(session?.events) ? session.events : [];
+  const userTurns = events.filter(
+    (event) => event.type === "user_utterance" || event.actor === "user",
+  ).length;
+  const turnCount = userTurns || history.length;
+  $("endingResultLabel").textContent = stamp;
+  $("endingTurnCount").textContent = `${turnCount} 回合`;
+  $("endingLanguage").textContent = languageName;
+  $("endingSceneBg").src = $("stageBackground").src;
+  $("endingSceneBg").alt = $("stageBackground").alt;
+  $("endingNpcPortrait").src = $("character").src;
+  $("endingNpcPortrait").alt = `${activeNpc.name} 的结局立绘`;
+  $("reviewDetails").removeAttribute("open");
+  $("endingConversationPanel").removeAttribute("open");
 }
 
 function showLiveEnding(session) {
@@ -1443,10 +1489,11 @@ function showLiveEnding(session) {
   $("endingStamp").style.background = copy.color;
   $("endingTitle").textContent = copy.title;
   $("endingDesc").textContent = copy.description;
-  $("endingOverlay").querySelector(".report-kicker").textContent = "STORY COMPLETE · 学习复盘";
+  $("endingOverlay").querySelector(".report-kicker").textContent = "STORY COMPLETE";
   $("nextPracticeGoal").textContent = "复盘生成后会给出一个明确目标。";
-  $("retryBtn").textContent = "重新体验故事";
-  setCharacter(normalizeEmotion(session.activeNpc?.emotionId || copy.mood));
+  $("retryBtn").textContent = "再玩一次";
+  setCharacter(normalizeEmotion(copy.mood || session.activeNpc?.emotionId));
+  configureEndingPoster(session, copy.stamp);
   $("endingOverlay").querySelector(".ending-card").classList.remove("story-only");
   document.querySelector(".experience").classList.add("review-mode");
   $("endingOverlay").classList.remove("hidden");
@@ -2060,7 +2107,7 @@ function selectFocusSentence(index) {
 function showEnding() {
   clearInterval(timerId);
   $("endingOverlay").querySelector(".ending-card").classList.remove("story-only");
-  $("endingOverlay").querySelector(".report-kicker").textContent = "STORY COMPLETE · 学习复盘";
+  $("endingOverlay").querySelector(".report-kicker").textContent = "STORY COMPLETE";
   const goodCount = history.filter((item) => item.path === "good").length;
   const badCount = history.filter((item) => item.path === "bad").length;
   $("progressFill").style.width = "100%";
@@ -2126,6 +2173,10 @@ function showEnding() {
     setCharacter("neutral");
   }
 
+  configureEndingPoster(
+    { targetLanguage: activeNpc.targetLanguage, events: [] },
+    $("endingStamp").textContent,
+  );
   $("nextPracticeGoal").textContent = "连接真实剧情服务后，系统会根据你的实际表达生成练习目标。";
   document.querySelector(".experience").classList.add("review-mode");
   $("endingOverlay").classList.remove("hidden");
@@ -2153,6 +2204,7 @@ function resetStoryState() {
   $("endingOverlay").querySelector(".ending-card").classList.remove("story-only");
   $("languageReviewState").classList.add("hidden");
   $("languageReviewContent").classList.add("hidden");
+  $("reviewDetails").removeAttribute("open");
   closeConversationModal({ restoreFocus: false });
   $("conversationPanel").disabled = true;
   $("conversationList").replaceChildren();
@@ -2296,6 +2348,10 @@ $("restartBtn").addEventListener("click", () => {
 $("retryBtn").addEventListener("click", () => {
   clearStoredPlaythrough();
   resetStory();
+});
+$("endingNpcBtn").addEventListener("click", () => {
+  clearStoredPlaythrough();
+  showNpcLibrary();
 });
 $("reviewRetryBtn").addEventListener("click", () => {
   startLanguageReview({ forceRetry: reviewRetryMode === "retry" });
