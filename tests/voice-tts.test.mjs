@@ -4,9 +4,9 @@ import {
   backendTtsErrorMessage,
   buildTtsSessionConfig,
   buildTtsTextInput,
-  buildGptSovitsRequest,
-  GPT_SOVITS_SAMPLE_RATE,
-  isGptSovitsProfile,
+  buildSherpaOnnxRequest,
+  SHERPA_ONNX_SAMPLE_RATE,
+  isSherpaOnnxProfile,
   PcmStartupBuffer,
   WavPcmStreamDecoder,
 } from "../voice-tts.js";
@@ -41,18 +41,18 @@ test("preserves source text byte-for-byte in the TTS input message", () => {
   assert.deepEqual(buildTtsTextInput(text), { type: "input.text", text });
 });
 
-test("routes the fixed Mike profile to the backend GPT-SoVITS contract", () => {
-  const mikeProfile = {
-    provider: "gpt-sovits",
-    model: "GPT-SoVITS-v2ProPlus",
-    voiceId: "mike-yue-v1",
+test("routes the fixed Mary profile to the backend Sherpa contract", () => {
+  const maryProfile = {
+    provider: "sherpa-onnx-vits",
+    model: "vits-cantonese-hf-xiaomaiiwn",
+    voiceId: "mary-yue-v1",
     language: "Cantonese",
   };
-  assert.equal(isGptSovitsProfile(mikeProfile), true);
-  assert.equal(isGptSovitsProfile({ provider: "qwen3-tts" }), false);
-  assert.deepEqual(buildGptSovitsRequest("好，資料正確。", mikeProfile), {
-    provider: "gpt-sovits",
-    voiceId: "mike-yue-v1",
+  assert.equal(isSherpaOnnxProfile(maryProfile), true);
+  assert.equal(isSherpaOnnxProfile({ provider: "qwen3-tts" }), false);
+  assert.deepEqual(buildSherpaOnnxRequest("好，資料正確。", maryProfile), {
+    provider: "sherpa-onnx-vits",
+    voiceId: "mary-yue-v1",
     text: "好，資料正確。",
   });
 });
@@ -98,7 +98,7 @@ test("drops pending PCM on interruption or failure", () => {
   buffer.complete();
   assert.deepEqual(played, []);
 });
-test("decodes a split 32 kHz mono PCM WAV stream", () => {
+test("decodes a split 22.05 kHz mono PCM WAV stream", () => {
   const header = new ArrayBuffer(44);
   const view = new DataView(header);
   for (const [offset, value] of [[0, "RIFF"], [8, "WAVE"], [36, "data"]]) {
@@ -108,7 +108,7 @@ test("decodes a split 32 kHz mono PCM WAV stream", () => {
   }
   view.setUint16(20, 1, true);
   view.setUint16(22, 1, true);
-  view.setUint32(24, GPT_SOVITS_SAMPLE_RATE, true);
+  view.setUint32(24, SHERPA_ONNX_SAMPLE_RATE, true);
   view.setUint16(34, 16, true);
   const pcm = new Uint8Array([1, 2, 3, 4, 5]);
   const combined = new Uint8Array(49);

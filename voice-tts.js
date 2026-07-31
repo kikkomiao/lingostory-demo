@@ -1,6 +1,6 @@
 export const TTS_MODEL = "Qwen3-TTS-12Hz-1.7B-CustomVoice";
 export const TTS_SAMPLE_RATE = 24_000;
-export const GPT_SOVITS_SAMPLE_RATE = 32_000;
+export const SHERPA_ONNX_SAMPLE_RATE = 22_050;
 export const TTS_STARTUP_BUFFER_MS = 400;
 
 export function buildTtsSessionConfig(profile, fallbackLanguage) {
@@ -20,13 +20,13 @@ export function buildTtsTextInput(text) {
   return { type: "input.text", text };
 }
 
-export function isGptSovitsProfile(profile) {
-  return profile?.provider === "gpt-sovits";
+export function isSherpaOnnxProfile(profile) {
+  return profile?.provider === "sherpa-onnx-vits";
 }
 
-export function buildGptSovitsRequest(text, profile) {
+export function buildSherpaOnnxRequest(text, profile) {
   return {
-    provider: "gpt-sovits",
+    provider: "sherpa-onnx-vits",
     voiceId: profile.voiceId,
     text,
   };
@@ -42,7 +42,7 @@ export function backendTtsErrorMessage(payload, status) {
 }
 
 export class WavPcmStreamDecoder {
-  constructor({ onPcm, expectedSampleRate = GPT_SOVITS_SAMPLE_RATE }) {
+  constructor({ onPcm, expectedSampleRate = SHERPA_ONNX_SAMPLE_RATE }) {
     this.onPcm = onPcm;
     this.expectedSampleRate = expectedSampleRate;
     this.header = new Uint8Array(0);

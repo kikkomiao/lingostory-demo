@@ -8,9 +8,9 @@ import {
   backendTtsErrorMessage,
   buildTtsSessionConfig,
   buildTtsTextInput,
-  buildGptSovitsRequest,
-  GPT_SOVITS_SAMPLE_RATE,
-  isGptSovitsProfile,
+  buildSherpaOnnxRequest,
+  SHERPA_ONNX_SAMPLE_RATE,
+  isSherpaOnnxProfile,
   PcmStartupBuffer,
   TTS_SAMPLE_RATE,
   WavPcmStreamDecoder,
@@ -278,7 +278,7 @@ class VoiceController {
     this.wavUrl = null;
     this.speechGeneration = 0;
     this.player = new PcmPlayer();
-    this.gptSovitsPlayer = new PcmPlayer({ sampleRate: GPT_SOVITS_SAMPLE_RATE });
+    this.sherpaOnnxPlayer = new PcmPlayer({ sampleRate: SHERPA_ONNX_SAMPLE_RATE });
     this.asr = new StreamingAsr(
       callbacks.onPartialTranscript,
       (text) => {
@@ -385,8 +385,8 @@ class VoiceController {
     if (!text || !profile?.voiceId) return;
     const generation = ++this.speechGeneration;
     this.interruptSpeech(false);
-    if (isGptSovitsProfile(profile)) {
-      await this.speakGptSovits(text, profile, displayName, generation);
+    if (isSherpaOnnxProfile(profile)) {
+      await this.speakSherpaOnnx(text, profile, displayName, generation);
       return;
     }
     try {
@@ -466,17 +466,17 @@ class VoiceController {
     }
   }
 
-  async speakGptSovits(text, profile, displayName, generation) {
+  async speakSherpaOnnx(text, profile, displayName, generation) {
     const controller = new AbortController();
     this.ttsAbortController = controller;
     try {
-      await this.gptSovitsPlayer.resume();
-      this.gptSovitsPlayer.begin();
+      await this.sherpaOnnxPlayer.resume();
+      this.sherpaOnnxPlayer.begin();
       this.callbacks.onState("speaking", `${displayName} 正在生成粤语语音…`);
       const response = await fetch(`${config.apiBaseUrl}/api/tts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildGptSovitsRequest(text, profile)),
+        body: JSON.stringify(buildSherpaOnnxRequest(text, profile)),
         signal: controller.signal,
       });
       if (!response.ok) {
@@ -492,7 +492,7 @@ class VoiceController {
             playbackStarted = true;
             this.callbacks.onState("speaking", `${displayName} 正在说话…`);
           }
-          this.gptSovitsPlayer.enqueue(pcm);
+          this.sherpaOnnxPlayer.enqueue(pcm);
         },
       });
       const reader = response.body.getReader();
@@ -506,14 +506,14 @@ class VoiceController {
         if (value?.byteLength) decoder.push(value);
       }
       decoder.complete();
-      this.gptSovitsPlayer.complete();
-      await this.gptSovitsPlayer.waitForEnd();
+      this.sherpaOnnxPlayer.complete();
+      await this.sherpaOnnxPlayer.waitForEnd();
       if (generation === this.speechGeneration) {
         this.callbacks.onState("ready", "可以继续说话");
       }
     } catch (error) {
       if (controller.signal.aborted || generation !== this.speechGeneration) return;
-      this.gptSovitsPlayer.stop();
+      this.sherpaOnnxPlayer.stop();
       this.callbacks.onError(
         new Error(
           `${error instanceof Error ? error.message : String(error)}；粤语语音已跳过`,
@@ -546,7 +546,7 @@ class VoiceController {
       this.wavUrl = null;
     }
     this.player.stop();
-    this.gptSovitsPlayer.stop();
+    this.sherpaOnnxPlayer.stop();
   }
 }
 

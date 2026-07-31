@@ -9,7 +9,7 @@ const REQUESTED_NPC_ID = String(new URLSearchParams(window.location.search).get(
   .trim()
   .toLowerCase();
 const OPEN_LIBRARY_DIRECTLY = new URLSearchParams(window.location.search).get("library") === "1";
-const NPC_LIBRARY_ORDER = ["cassie", "mary", "cyrus", "kate", "mike"];
+const NPC_LIBRARY_ORDER = ["cassie", "mike", "cyrus", "kate", "mary"];
 
 const demoNpcLibrary = [
   {
@@ -62,16 +62,17 @@ const demoNpcLibrary = [
   {
     id: "mike",
     source: "demo",
-    availability: "comingSoon",
+    availability: "available",
     name: "Mike",
-    role: "香港天后站友善路人",
-    storyId: null,
-    episode: "专属剧情 · 待公布",
-    storyTitle: "故事正在筹备中",
-    storyDescription: "Mike 会用简单粤语协助你确认从天后站前往中环的固定路线。",
-    level: "故事待定",
+    role: "社区咖啡店咖啡师",
+    storyId: "corner-cafe-order-mike-en-v1",
+    episode: "LINGOSTORY · 英语场景",
+    storyTitle: "在街角咖啡店点单",
+    storyDescription: "用入门英语回答 Mike 的常见点单问题，完成一杯属于自己的咖啡订单。",
+    estimatedMinutes: 4,
+    level: "A1–A2 · 英语",
     accent: "#f2a05f",
-    background: "./mike-mtr-background-v2.png",
+    background: "./office-background-v2.png",
     selectImage: "./npc/mike/Mike_00_grid_select.png",
     emotionAssets: {
       neutral: "./npc/mike/Mike_01_neutral.png",
@@ -85,15 +86,17 @@ const demoNpcLibrary = [
   {
     id: "mary",
     source: "demo",
-    availability: "comingSoon",
+    availability: "available",
     name: "Mary",
-    role: "社区咖啡店咖啡师",
-    storyId: null,
-    episode: "专属剧情 · 待公布",
-    storyTitle: "故事正在筹备中",
-    storyDescription: "Mary 的咖啡店点单场景需要连接后端后开放。",
-    level: "故事待定",
+    role: "香港天后站友善路人",
+    storyId: "hong-kong-mtr-directions-mary-yue-v1",
+    episode: "LINGOSTORY · 粤语场景",
+    storyTitle: "在港铁站问路",
+    storyDescription: "Mary 会用简单粤语协助你确认从天后站前往中环的固定路线。",
+    estimatedMinutes: 4,
+    level: "粤语入门–初级 · 粤语",
     accent: "#d89a6a",
+    background: "./mike-mtr-background-v2.png",
     selectImage: "./npc/mary/Mary_00_grid_select.png",
     emotionAssets: {
       neutral: "./npc/mary/Mary_01_neutral.png",
@@ -166,17 +169,17 @@ const storyPresentation = {
     title: "日本机场值机",
     synopsis: "从东京飞往上海前，用简单日语回答結衣的值机问题并拿到登机牌。",
   },
-  "hong-kong-mtr-directions-mike-yue-v4": {
+  "hong-kong-mtr-directions-mary-yue-v1": {
     title: "在港铁站问路",
-    synopsis: "在天后站向 Mike 询问前往中环的路线，确认港岛线、方向、换乘和站数。",
+    synopsis: "在天后站向 Mary 询问前往中环的路线，确认港岛线、方向、换乘和站数。",
   },
   "whose-idea-cassie-en-v1": {
     title: "这个想法是谁的？",
     synopsis: "厘清原创与执行贡献，并在提交前让署名和负责人记录真正改变。",
   },
-  "corner-cafe-order-mary-en-v1": {
+  "corner-cafe-order-mike-en-v1": {
     title: "在街角咖啡店点单",
-    synopsis: "用入门英语回答 Mary 的常见点单问题，完成一杯属于自己的咖啡订单。",
+    synopsis: "用入门英语回答 Mike 的常见点单问题，完成一杯属于自己的咖啡订单。",
   },
 };
 
@@ -1754,7 +1757,7 @@ function applyActiveNpc() {
   $("learningPolicyDescription").textContent = isJapanese
     ? "用简单日语回答一个问题，再进入下一项；没说清时結衣只会自然追问一次。"
     : isCantonese
-      ? "用常见词语逐步询问；路线问题不清楚时，Mike 只会自然追问一次。"
+      ? "用常见词语逐步询问；路线问题不清楚时，Mary 只会自然追问一次。"
       : "先像真实生活一样把话说完，结束后再集中分析语法、用词和表达自然度。";
   $("endingModeLabel").textContent = isJapanese || isCantonese
     ? "固定成功结局"
@@ -2182,7 +2185,7 @@ function resetStoryState() {
   $("translation").textContent = isJapanese
     ? "結衣正在值机区域协助你完成手续。"
     : isCantonese
-      ? "附近的友善路人 Mike 请你先说明目的地。"
+      ? "附近的友善路人 Mary 请你先说明目的地。"
       : offline.openingDetail;
   $("speakerName").textContent = "旁白";
   $("voiceStatus").textContent =

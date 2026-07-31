@@ -64,18 +64,39 @@ const fallbackProfiles = {
     id: "mike",
     displayName: "Mike",
     status: "available",
+    role: "Barista at a friendly neighborhood café",
+    roleZh: "社区咖啡店咖啡师",
+    personality:
+      "Warm, patient, observant, and practical. Mike keeps first-time customers comfortable and never rushes a language learner.",
+    relationship:
+      "Mike is the barista serving you while you order one drink at the café counter.",
+    speakingStyle:
+      "Short, natural, friendly everyday English with clear café vocabulary and moderate pacing.",
+    personalityZh:
+      "温暖、耐心、细心且务实。Mike 会让第一次点单的顾客感到轻松，也不会催促语言学习者。",
+    relationshipZh:
+      "Mike 是正在为你点单的咖啡师，你是在吧台购买一杯饮品的顾客。",
+    speakingStyleZh: "使用简短、自然、友好的日常英语，咖啡店词汇清楚，语速适中。",
+    selectImage: "./npc/mike/Mike_00_grid_select.png",
+    accent: "#f2a05f",
+    storyTitle: "在街角咖啡店点单",
+  },
+  mary: {
+    id: "mary",
+    displayName: "Mary",
+    status: "available",
     targetLanguage: "yue",
     role: "Friendly passerby near Tin Hau station in Hong Kong",
     roleZh: "香港天后站友善路人",
     roleYue: "香港天后站附近嘅友善路人",
     personality:
-      "Approachable, patient, practical, and quietly humorous. Mike listens carefully and asks straightforward questions.",
+      "Approachable, patient, practical, and quietly humorous. Mary listens carefully and asks straightforward questions.",
     personalityYue:
-      "隨和、有耐性、務實，帶少少低調幽默感。Mike 會認真聽你講，亦會直接問清楚重點。",
+      "隨和、有耐性、務實，帶少少低調幽默感。Mary 會認真聽你講，亦會直接問清楚重點。",
     relationship:
       "A friendly passerby helping you travel from Tin Hau to Central.",
     relationshipYue:
-      "Mike 係天后站附近嘅友善路人，幫你確認由天后去中環嘅固定路線。",
+      "Mary 係天后站附近嘅友善路人，幫你確認由天后去中環嘅固定路線。",
     speakingStyle:
       "Short, clear Traditional Chinese sentences in controlled natural Cantonese.",
     speakingStyleYue:
@@ -83,33 +104,12 @@ const fallbackProfiles = {
     playerRoleYue:
       "你係第一次到香港嘅遊客，依家喺天后站，準備坐港鐵去中環。",
     personalityZh:
-      "随和、耐心、务实，带有低调的幽默感。Mike 会认真倾听，并提出直接的问题。",
-    relationshipZh: "Mike 正在协助你确认从天后站前往中环的固定路线。",
+      "随和、耐心、务实，带有低调的幽默感。Mary 会认真倾听，并提出直接的问题。",
+    relationshipZh: "Mary 正在协助你确认从天后站前往中环的固定路线。",
     speakingStyleZh: "使用繁体中文、短句和常见词语，以自然但受控的香港粤语沟通。",
-    selectImage: "./npc/mike/Mike_00_grid_select.png",
-    accent: "#f2a05f",
-    storyTitle: "在港铁站问路",
-  },
-  mary: {
-    id: "mary",
-    displayName: "Mary",
-    status: "available",
-    role: "Barista at a friendly neighborhood café",
-    roleZh: "友好社区咖啡店的咖啡师",
-    personality:
-      "Warm, patient, observant, and practical. Mary keeps first-time customers comfortable and never rushes a language learner.",
-    relationship:
-      "Mary is the barista serving you while you order one drink at the café counter.",
-    speakingStyle:
-      "Short, natural, friendly everyday English with clear café vocabulary and moderate pacing.",
-    personalityZh:
-      "温暖、耐心、细心且务实。Mary 会让第一次点单的顾客感到轻松，也不会催促语言学习者。",
-    relationshipZh:
-      "Mary 是正在为你点单的咖啡师，你是在吧台购买一杯饮品的顾客。",
-    speakingStyleZh: "使用简短、自然、友好的日常英语，咖啡店词汇清楚，语速适中。",
     selectImage: "./npc/mary/Mary_00_grid_select.png",
     accent: "#d89a6a",
-    storyTitle: "在街角咖啡店点单",
+    storyTitle: "在港铁站问路",
   },
   cassie: {
     id: "cassie",
