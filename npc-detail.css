@@ -150,32 +150,26 @@ body { min-height: 100vh; }
 
 .profile-role {
   max-width: 650px;
-  margin: 0;
+}
+
+.profile-role p { margin: 0; }
+
+.profile-role-zh {
+  color: var(--ink);
+  font: 850 clamp(17px, 2vw, 23px)/1.45 "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+.profile-role-en {
+  margin-top: 4px !important;
   color: var(--muted);
-  font: 750 clamp(16px, 2vw, 22px)/1.45 "Segoe UI", sans-serif;
-}
-
-.profile-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 24px;
-}
-
-.profile-chips span {
-  padding: 6px 9px;
-  border: 2px solid var(--ink);
-  border-radius: 999px;
-  background: #d7ebff;
-  font-size: 9px;
-  font-weight: 900;
+  font: 700 clamp(14px, 1.7vw, 19px)/1.45 "Segoe UI", sans-serif;
 }
 
 .profile-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 30px;
+  margin-top: 26px;
 }
 
 .profile-primary,

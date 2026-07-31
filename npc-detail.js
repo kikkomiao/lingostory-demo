@@ -9,6 +9,7 @@ const fallbackProfiles = {
     displayName: "Cyrus",
     status: "available",
     role: "Senior executive at a large technology company",
+    roleZh: "大型科技公司的高级管理者",
     personality:
       "Busy, decisive, observant, fair-minded, and pragmatic. He values accountability without overreacting to honest mistakes and has a restrained sense of humor.",
     relationship:
@@ -32,6 +33,7 @@ const fallbackProfiles = {
     displayName: "Kate",
     status: "comingSoon",
     role: "Community library assistant who helps visitors find resources and practice everyday English",
+    roleZh: "社区图书馆助理，帮助访客查找资料并练习日常英语",
     personality:
       "Warm, observant, practical, and gently humorous. She is patient with mistakes and asks thoughtful questions.",
     relationship:
@@ -51,6 +53,7 @@ const fallbackProfiles = {
     displayName: "Mike",
     status: "comingSoon",
     role: "Customer support coordinator at a local office-supply company",
+    roleZh: "本地办公用品公司的客户支持协调员",
     personality:
       "Approachable, patient, practical, and quietly humorous. Mike listens carefully and asks straightforward questions.",
     relationship:
@@ -70,6 +73,7 @@ const fallbackProfiles = {
     displayName: "Mary",
     status: "comingSoon",
     role: "Community library assistant and everyday conversation partner",
+    roleZh: "社区图书馆助理，也是你的日常会话伙伴",
     personality:
       "Warm, observant, practical, and gently humorous. Mary listens carefully and admits mistakes.",
     relationship:
@@ -89,6 +93,7 @@ const fallbackProfiles = {
     displayName: "Cassie",
     status: "comingSoon",
     role: "Front-desk coordinator at a neighborhood community center",
+    roleZh: "社区中心前台协调员",
     personality:
       "Warm, observant, practical, and gently humorous. Cassie listens carefully and treats mistakes with patience.",
     relationship:
@@ -104,15 +109,6 @@ const fallbackProfiles = {
     selectImage: "./npc/cassie/Cassie_00_grid_select.png",
     accent: "#ffc992",
   },
-};
-
-const emotionLabels = {
-  neutral: "中性",
-  happy: "开心",
-  sad: "难过",
-  angry: "生气",
-  nervous: "紧张",
-  surprised: "惊讶",
 };
 
 function responseList(payload, key) {
@@ -156,17 +152,6 @@ function profileValue(npc, key, fallback) {
   return profile[key] || npc?.[key] || fallback?.[key] || "暂未提供";
 }
 
-function renderEmotionChips(emotions) {
-  const chips = $("emotionChips");
-  chips.replaceChildren();
-  [...new Set(emotions || Object.keys(emotionLabels))].forEach((emotion) => {
-    if (!emotionLabels[emotion]) return;
-    const chip = document.createElement("span");
-    chip.textContent = emotionLabels[emotion];
-    chips.append(chip);
-  });
-}
-
 function renderProfile(npc, fallback, story, storyDetail) {
   const profile = npc?.profile || npc;
   const id = npc?.id || profile?.npcId || fallback.id;
@@ -182,7 +167,8 @@ function renderProfile(npc, fallback, story, storyDetail) {
   $("npcPortrait").src = fallback.selectImage;
   $("npcPortrait").alt = `${displayName} 的角色立绘`;
   $("npcName").textContent = displayName;
-  $("npcRole").textContent = profileValue(npc, "role", fallback);
+  $("npcRoleZh").textContent = localizedNpc.role || fallback.roleZh;
+  $("npcRoleEn").textContent = profileValue(npc, "role", fallback);
   $("npcPersonalityZh").textContent = localizedNpc.personality || fallback.personalityZh;
   $("npcPersonalityEn").textContent = profileValue(npc, "personality", fallback);
   $("npcRelationshipZh").textContent = localizedNpc.relationship || fallback.relationshipZh;
@@ -205,8 +191,6 @@ function renderProfile(npc, fallback, story, storyDetail) {
     : status === "disabled"
       ? "角色已下线"
       : "专属故事筹备中";
-
-  renderEmotionChips(npc?.supportedEmotions);
 
   const storyAction = $("storyAction");
   storyAction.classList.toggle("hidden", !hasStory);
