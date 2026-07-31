@@ -1091,7 +1091,7 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   $("timerValue").textContent = "";
   $("timer").style.setProperty("--progress", "1");
   $("timer").querySelector(".timer-label").textContent = "";
-  $("voiceStatus").textContent = "点击麦克风说话，或使用文本输入";
+  $("voiceStatus").textContent = "点击麦克风或按空格开始/结束录音，也可使用文本输入";
   $("turnInput").placeholder = isJapanese
     ? "日本語で言いたいことを入力してください…"
     : isCantonese
@@ -1522,7 +1522,7 @@ async function startLiveStory() {
     const session = payload.session || payload;
     $("introOverlay").classList.add("hidden");
     renderLiveSession(session);
-    $("turnInput").focus();
+    $("micBtn").focus({ preventScroll: true });
   } catch (error) {
     $("introModeHint").textContent = `暂时无法开始：${localizedApiError(error)}`;
   } finally {
@@ -1835,7 +1835,7 @@ function simulateListening() {
   listening = true;
   $("micBtn").classList.add("listening");
   $("wave").classList.add("active");
-  $("voiceStatus").textContent = "正在聆听…再次点击结束";
+  $("voiceStatus").textContent = "正在聆听…再次点击麦克风或按空格结束";
   $("transcript").textContent = "Listening…";
   $("transcriptBox").classList.add("processing");
   setTimeout(() => {
@@ -2181,7 +2181,9 @@ function resetStoryState() {
       : offline.openingDetail;
   $("speakerName").textContent = "旁白";
   $("voiceStatus").textContent =
-    appMode === "live" ? "点击麦克风说话，或使用文本输入" : "点击麦克风，或按住空格说话";
+    appMode === "live"
+      ? "点击麦克风或按空格开始/结束录音，也可使用文本输入"
+      : "点击麦克风或按空格开始/结束录音";
   $("transcript").textContent = "你的表达会出现在这里…";
   $("transcriptBox").classList.remove("processing");
   $("translation").classList.remove("hidden");
@@ -2359,6 +2361,7 @@ document.addEventListener("keydown", (event) => {
   if (editing) return;
   if (event.code === "Space") {
     event.preventDefault();
+    if (event.repeat) return;
     if (appMode === "live") {
       if (window.lingostoryVoice) void window.lingostoryVoice.toggleRecording();
       else $("turnInput").focus();

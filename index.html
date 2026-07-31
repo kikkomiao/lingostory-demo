@@ -269,13 +269,19 @@
             <div id="timer" class="timer" style="--progress: 1">
               <div>
                 <strong id="timerValue">8</strong>
-                <button id="micBtn" class="mic-btn" type="button" aria-label="开始模拟录音">
+                <button
+                  id="micBtn"
+                  class="mic-btn"
+                  type="button"
+                  aria-label="开始模拟录音"
+                  aria-keyshortcuts="Space"
+                >
                   <span class="mic-icon"></span>
                 </button>
                 <span class="timer-label">秒</span>
               </div>
             </div>
-            <p id="voiceStatus">点击麦克风，或按住空格说话</p>
+            <p id="voiceStatus">点击麦克风或按空格开始/结束录音</p>
             <div id="wave" class="wave" aria-hidden="true">
               <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
             </div>
@@ -354,9 +360,9 @@
       </section>
     </main>
     <script src="./audio.js?v=20260801-conversation-silence"></script>
-    <script src="./app.js?v=20260801-menu-audio"></script>
+    <script src="./app.js?v=20260801-space-recording"></script>
     <script src="./vendor/voice/ort.min.js"></script>
     <script src="./vendor/voice/vad.bundle.min.js"></script>
-    <script type="module" src="./voice.js"></script>
+    <script type="module" src="./voice.js?v=20260801-space-recording"></script>
   </body>
 </html>
