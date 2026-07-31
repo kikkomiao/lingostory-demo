@@ -102,6 +102,8 @@ node scripts/fixture-server.mjs
 - 最终转写复用文本输入的 `/turn` 接口；ASR、TTS 或麦克风不可用时仍可继续文本流程。
 - 大模型返回 NPC 回复后，按角色 `voiceProfile` 调用 Qwen3-TTS WebSocket。
 - TTS 下行 PCM 以 24kHz 单声道流式排队播放；再次点击麦克风会中断当前播报。
+- TTS 请求通过字段白名单构造，不透传角色风格、情绪、分句或变速参数；NPC 回复原文
+  直接发送。播放器在首批 PCM 累计约 400ms 后启播，以降低网络抖动造成的断续。
 - ASR/TTS 地址可通过 `window.LINGOSTORY_VOICE_CONFIG` 覆盖。
 
 ## Mike 粤语固定故事

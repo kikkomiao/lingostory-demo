@@ -32,16 +32,25 @@ const fallbackProfiles = {
     id: "kate",
     displayName: "結衣",
     status: "available",
+    targetLanguage: "ja",
     role: "Airline staff member assisting passengers at the airport",
     roleZh: "在机场协助旅客的航司工作人员",
+    roleJa: "空港で旅客のチェックインをサポートする航空会社スタッフ",
     personality:
       "Calm, attentive, practical, and reassuring. She stays courteous under pressure and asks focused questions when an answer is unclear.",
+    personalityJa:
+      "冷静で気配りがあり、実務的で安心感のある人です。答えがはっきりしないときも、丁寧に要点を絞って確認します。",
     relationship:
       "The airline staff member assisting you at the airport check-in counter.",
+    relationshipJa:
+      "結衣は空港のチェックインカウンターであなたの手続きをサポートする航空会社スタッフです。",
     speakingStyle:
       "Natural, courteous Japanese at approximately JLPT N4-N3 level, using concise service language.",
+    speakingStyleJa:
+      "JLPT N4〜N3程度の、自然で丁寧かつ簡潔な日本語の接客表現を使います。",
     playerRole: "You are a passenger flying from Tokyo to Shanghai.",
     playerRoleZh: "你是一名准备从东京飞往上海的旅客。",
+    playerRoleJa: "あなたは東京から上海へ向かう旅客です。",
     personalityZh:
       "冷静、细心、务实且让人安心。遇到没有听清的回答时，她会礼貌地聚焦追问。",
     relationshipZh:
@@ -169,27 +178,52 @@ function renderProfile(npc, fallback, story, storyDetail) {
     storyDetail?.localization?.playerRole ||
     storyDetail?.presentation?.zhCN?.playerRole;
   const localizedNpc = npc?.presentation?.zhCN || profile?.presentation?.zhCN || {};
+  const isJapanese =
+    (storyDetail?.targetLanguage || story?.targetLanguage || fallback.targetLanguage) === "ja";
+  const secondaryCopy = isJapanese
+    ? {
+        role: fallback.roleJa,
+        personality: fallback.personalityJa,
+        relationship: storyDetail?.npc?.relationship || fallback.relationshipJa,
+        speakingStyle: storyDetail?.npc?.speakingStyle || fallback.speakingStyleJa,
+        playerRole: storyDetail?.playerRole || fallback.playerRoleJa,
+      }
+    : {
+        role: profileValue(npc, "role", fallback),
+        personality: profileValue(npc, "personality", fallback),
+        relationship: profileValue(npc, "relationship", fallback),
+        speakingStyle: profileValue(npc, "speakingStyle", fallback),
+        playerRole:
+          storyDetail?.playerRole ||
+          fallback.playerRole ||
+          "Your role will appear when this character's story is ready.",
+      };
+  const secondaryElements = [
+    $("npcRoleEn"),
+    $("npcPersonalityEn"),
+    $("npcRelationshipEn"),
+    $("npcSpeakingStyleEn"),
+    $("playerRoleEn"),
+  ];
+  secondaryElements.forEach((element) => element.setAttribute("lang", isJapanese ? "ja" : "en"));
 
   $("profileHero").style.setProperty("--profile-accent", fallback.accent);
   $("npcPortrait").src = fallback.selectImage;
   $("npcPortrait").alt = `${displayName} 的角色立绘`;
   $("npcName").textContent = displayName;
   $("npcRoleZh").textContent = localizedNpc.role || fallback.roleZh;
-  $("npcRoleEn").textContent = profileValue(npc, "role", fallback);
+  $("npcRoleEn").textContent = secondaryCopy.role;
   $("npcPersonalityZh").textContent = localizedNpc.personality || fallback.personalityZh;
-  $("npcPersonalityEn").textContent = profileValue(npc, "personality", fallback);
+  $("npcPersonalityEn").textContent = secondaryCopy.personality;
   $("npcRelationshipZh").textContent = localizedNpc.relationship || fallback.relationshipZh;
-  $("npcRelationshipEn").textContent = profileValue(npc, "relationship", fallback);
+  $("npcRelationshipEn").textContent = secondaryCopy.relationship;
   $("npcSpeakingStyleZh").textContent = localizedNpc.speakingStyle || fallback.speakingStyleZh;
-  $("npcSpeakingStyleEn").textContent = profileValue(npc, "speakingStyle", fallback);
+  $("npcSpeakingStyleEn").textContent = secondaryCopy.speakingStyle;
   $("playerRoleZh").textContent =
     localizedPlayerRole ||
     fallback.playerRoleZh ||
     "专属故事确定后，这里会显示你与角色相遇时的身份。";
-  $("playerRoleEn").textContent =
-    storyDetail?.playerRole ||
-    fallback.playerRole ||
-    "Your role will appear when this character's story is ready.";
+  $("playerRoleEn").textContent = secondaryCopy.playerRole;
 
   const badge = $("availabilityBadge");
   badge.dataset.state = status;

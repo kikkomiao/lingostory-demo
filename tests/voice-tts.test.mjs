@@ -88,7 +88,6 @@ test("drops pending PCM on interruption or failure", () => {
   buffer.complete();
   assert.deepEqual(played, []);
 });
-
 test("decodes a split 32 kHz mono PCM WAV stream", () => {
   const header = new ArrayBuffer(44);
   const view = new DataView(header);

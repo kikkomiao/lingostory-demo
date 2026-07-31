@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import WebSocket from "ws";
 import { buildTtsSessionConfig, buildTtsTextInput, TTS_SAMPLE_RATE } from "../voice-tts.js";
 
 const TTS_URL =
@@ -36,7 +37,6 @@ const scenarios = [
       "先ほどいただいた内容を確認しました。最初の選択肢はまだ利用できますが、配送日が変わりました。その日程が難しい場合は、決める前に二つ目の選択肢も確認できます。",
   },
 ];
-
 const voices = [
   { id: "ryan", language: "English" },
   { id: "aiden", language: "English" },

@@ -8,6 +8,7 @@ const PLAYTHROUGH_STORAGE_KEY = "lingostory.playthroughId";
 const REQUESTED_NPC_ID = String(new URLSearchParams(window.location.search).get("npc") || "")
   .trim()
   .toLowerCase();
+const OPEN_LIBRARY_DIRECTLY = new URLSearchParams(window.location.search).get("library") === "1";
 
 const demoNpcLibrary = [
   {
@@ -1527,6 +1528,7 @@ async function restorePlaythrough() {
       activeNpc = boundDisplayName ? { ...sessionNpc, name: boundDisplayName } : sessionNpc;
     }
     applyActiveNpc();
+    setLibraryTopbar(false);
     document.querySelector(".experience").classList.remove("library-mode");
     $("npcLibraryOverlay").classList.add("hidden");
     $("introOverlay").classList.add("hidden");
@@ -1620,6 +1622,40 @@ async function initializeData({ force = false } = {}) {
       clearStoredPlaythrough();
       resetStory();
     }
+  } finally {
+    apiConnecting = false;
+  }
+}
+
+async function refreshNpcCatalog() {
+  if (
+    apiConnecting ||
+    window.location.protocol === "file:" ||
+    $("npcLibraryOverlay").classList.contains("hidden")
+  ) {
+    return;
+  }
+
+  apiConnecting = true;
+  try {
+    const [npcPayload, storyPayload] = await Promise.all([
+      apiRequest("/api/npcs", { timeoutMs: API_DISCOVERY_TIMEOUT_MS }),
+      apiRequest("/api/stories", { timeoutMs: API_DISCOVERY_TIMEOUT_MS }),
+    ]);
+    const refreshedLibrary = buildApiNpcLibrary(npcPayload, storyPayload);
+    if (!refreshedLibrary.some((npc) => npc.availability === "available" && npc.storyId)) {
+      return;
+    }
+
+    const refreshedActiveNpc = refreshedLibrary.find((npc) => npc.id === activeNpc.id);
+    npcLibrary = refreshedLibrary;
+    if (refreshedActiveNpc) activeNpc = refreshedActiveNpc;
+    apiReady = true;
+    renderNpcLibrary();
+    applyActiveNpc();
+    setConnectionState("live", "真实 API");
+  } catch {
+    // Keep the last usable catalog visible; the next focus or interval retries.
   } finally {
     apiConnecting = false;
   }
@@ -2160,14 +2196,22 @@ function resetStoryState() {
 
 function resetStory() {
   resetStoryState();
+  setLibraryTopbar(false);
   const experience = document.querySelector(".experience");
   experience.classList.remove("review-mode", "library-mode");
   $("npcLibraryOverlay").classList.add("hidden");
   $("introOverlay").classList.remove("hidden");
 }
 
+function setLibraryTopbar(isLibrary) {
+  $("homeBtn").classList.toggle("hidden", !isLibrary);
+  $("conversationPanel").classList.toggle("hidden", isLibrary);
+  $("restartBtn").classList.toggle("hidden", isLibrary);
+}
+
 function showNpcLibrary() {
   resetStoryState();
+  setLibraryTopbar(true);
   const experience = document.querySelector(".experience");
   experience.classList.remove("review-mode");
   experience.classList.add("library-mode");
@@ -2201,6 +2245,12 @@ $("brandHome").addEventListener("click", (event) => {
   event.preventDefault();
   clearStoredPlaythrough();
   showNpcLibrary();
+});
+$("homeBtn").addEventListener("click", () => {
+  clearStoredPlaythrough();
+  showNpcLibrary();
+  gameEntry.classList.remove("hidden", "is-exiting", "is-transitioning");
+  document.body.classList.add("game-entry-open");
 });
 $("restartBtn").addEventListener("click", () => {
   clearStoredPlaythrough();
@@ -2244,6 +2294,31 @@ $("closeConversationModal").addEventListener("click", () => closeConversationMod
 $("conversationModal").addEventListener("click", (event) => {
   if (event.target === event.currentTarget) closeConversationModal();
 });
+
+const gameEntry = $("gameEntry");
+const gameEntryTrigger = $("gameEntryTrigger");
+const forceGameEntry = new URLSearchParams(window.location.search).get("welcome") === "1";
+if ((REQUESTED_NPC_ID || OPEN_LIBRARY_DIRECTLY) && !forceGameEntry) {
+  gameEntry.classList.add("hidden");
+  document.body.classList.remove("game-entry-open");
+}
+gameEntryTrigger.addEventListener(
+  "click",
+  () => {
+    if (gameEntry.classList.contains("is-exiting")) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    gameEntry.classList.add("is-exiting");
+    window.requestAnimationFrame(() => {
+      gameEntry.classList.add("is-transitioning");
+      window.setTimeout(() => {
+        gameEntry.classList.add("hidden");
+        gameEntry.classList.remove("is-exiting", "is-transitioning");
+        document.body.classList.remove("game-entry-open");
+      }, reducedMotion ? 80 : 1100);
+    });
+  },
+);
+
 $("apiRetryBtn").addEventListener("click", () => {
   userSelectedNpc = false;
   initializeData({ force: true });
@@ -2276,6 +2351,11 @@ document.addEventListener("keydown", (event) => {
     if (event.key === "3") choosePath("bad");
   }
 });
+window.addEventListener("focus", () => void refreshNpcCatalog());
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) void refreshNpcCatalog();
+});
+window.setInterval(() => void refreshNpcCatalog(), 15000);
 renderNpcLibrary();
 applyActiveNpc();
 showNpcLibrary();
