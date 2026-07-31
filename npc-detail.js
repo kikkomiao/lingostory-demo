@@ -64,14 +64,24 @@ const fallbackProfiles = {
     id: "mike",
     displayName: "Mike",
     status: "available",
+    targetLanguage: "yue",
     role: "Friendly passerby near Tin Hau station in Hong Kong",
     roleZh: "香港天后站友善路人",
+    roleYue: "香港天后站附近嘅友善路人",
     personality:
       "Approachable, patient, practical, and quietly humorous. Mike listens carefully and asks straightforward questions.",
+    personalityYue:
+      "隨和、有耐性、務實，帶少少低調幽默感。Mike 會認真聽你講，亦會直接問清楚重點。",
     relationship:
       "A friendly passerby helping you travel from Tin Hau to Central.",
+    relationshipYue:
+      "Mike 係天后站附近嘅友善路人，幫你確認由天后去中環嘅固定路線。",
     speakingStyle:
       "Short, clear Traditional Chinese sentences in controlled natural Cantonese.",
+    speakingStyleYue:
+      "用繁體中文、短句同常用詞，以自然但受控嘅香港粵語溝通。",
+    playerRoleYue:
+      "你係第一次到香港嘅遊客，依家喺天后站，準備坐港鐵去中環。",
     personalityZh:
       "随和、耐心、务实，带有低调的幽默感。Mike 会认真倾听，并提出直接的问题。",
     relationshipZh: "Mike 正在协助你确认从天后站前往中环的固定路线。",
@@ -180,6 +190,8 @@ function renderProfile(npc, fallback, story, storyDetail) {
   const localizedNpc = npc?.presentation?.zhCN || profile?.presentation?.zhCN || {};
   const isJapanese =
     (storyDetail?.targetLanguage || story?.targetLanguage || fallback.targetLanguage) === "ja";
+  const isCantonese =
+    (storyDetail?.targetLanguage || story?.targetLanguage || fallback.targetLanguage) === "yue";
   const secondaryCopy = isJapanese
     ? {
         role: fallback.roleJa,
@@ -188,16 +200,24 @@ function renderProfile(npc, fallback, story, storyDetail) {
         speakingStyle: storyDetail?.npc?.speakingStyle || fallback.speakingStyleJa,
         playerRole: storyDetail?.playerRole || fallback.playerRoleJa,
       }
-    : {
-        role: profileValue(npc, "role", fallback),
-        personality: profileValue(npc, "personality", fallback),
-        relationship: profileValue(npc, "relationship", fallback),
-        speakingStyle: profileValue(npc, "speakingStyle", fallback),
-        playerRole:
-          storyDetail?.playerRole ||
-          fallback.playerRole ||
-          "Your role will appear when this character's story is ready.",
-      };
+    : isCantonese
+      ? {
+          role: fallback.roleYue,
+          personality: fallback.personalityYue,
+          relationship: fallback.relationshipYue,
+          speakingStyle: fallback.speakingStyleYue,
+          playerRole: storyDetail?.playerRole || fallback.playerRoleYue,
+        }
+      : {
+          role: profileValue(npc, "role", fallback),
+          personality: profileValue(npc, "personality", fallback),
+          relationship: profileValue(npc, "relationship", fallback),
+          speakingStyle: profileValue(npc, "speakingStyle", fallback),
+          playerRole:
+            storyDetail?.playerRole ||
+            fallback.playerRole ||
+            "Your role will appear when this character's story is ready.",
+        };
   const secondaryElements = [
     $("npcRoleEn"),
     $("npcPersonalityEn"),
@@ -205,7 +225,8 @@ function renderProfile(npc, fallback, story, storyDetail) {
     $("npcSpeakingStyleEn"),
     $("playerRoleEn"),
   ];
-  secondaryElements.forEach((element) => element.setAttribute("lang", isJapanese ? "ja" : "en"));
+  const secondaryLanguage = isJapanese ? "ja" : isCantonese ? "zh-HK" : "en";
+  secondaryElements.forEach((element) => element.setAttribute("lang", secondaryLanguage));
 
   $("profileHero").style.setProperty("--profile-accent", fallback.accent);
   $("npcPortrait").src = fallback.selectImage;
