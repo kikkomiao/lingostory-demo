@@ -997,6 +997,9 @@ function hideTurnError() {
 
 function renderLiveSession(session, npcReply = null, userText = "") {
   if (!session) return;
+  const previousSessionId = liveSession?.sessionId || liveSession?.id;
+  const nextSessionId = session.sessionId || session.id;
+  const enteringSession = !previousSessionId || previousSessionId !== nextSessionId;
   setMenuAudioMode(false);
   liveSession = session;
   storePlaythroughId(session.sessionId || session.id);
@@ -1105,6 +1108,9 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   $("keyboardTip").classList.add("hidden");
   hideTurnError();
   setCharacter(normalizeEmotion(replyEmotion));
+  if (enteringSession) {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  }
 }
 
 function controllerFeedback(controller) {
@@ -1522,7 +1528,6 @@ async function startLiveStory() {
     const session = payload.session || payload;
     $("introOverlay").classList.add("hidden");
     renderLiveSession(session);
-    $("micBtn").focus({ preventScroll: true });
   } catch (error) {
     $("introModeHint").textContent = `暂时无法开始：${localizedApiError(error)}`;
   } finally {
