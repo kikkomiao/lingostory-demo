@@ -9,6 +9,7 @@ const REQUESTED_NPC_ID = String(new URLSearchParams(window.location.search).get(
   .trim()
   .toLowerCase();
 const OPEN_LIBRARY_DIRECTLY = new URLSearchParams(window.location.search).get("library") === "1";
+const NPC_LIBRARY_ORDER = ["cassie", "mary", "cyrus", "kate", "mike"];
 
 const demoNpcLibrary = [
   {
@@ -22,7 +23,7 @@ const demoNpcLibrary = [
     storyTitle: "拿错了老板的午饭",
     storyDescription: "开口推动剧情！你有 4 轮对话，在 Cyrus 走进办公室之前补救这场午餐危机。",
     estimatedMinutes: 3,
-    level: "A2–B1 · 职场沟通",
+    level: "A2–B1 · 英语",
     accent: "#ffd95e",
     background: "./office-background-v2.png",
     selectImage: "./npc/cyrus/Cyrus_00_grid_select.png",
@@ -62,7 +63,7 @@ const demoNpcLibrary = [
     source: "demo",
     availability: "comingSoon",
     name: "Mike",
-    role: "香港天后港铁站工作人员",
+    role: "香港天后站友善路人",
     storyId: null,
     episode: "专属剧情 · 待公布",
     storyTitle: "故事正在筹备中",
@@ -85,7 +86,7 @@ const demoNpcLibrary = [
     source: "demo",
     availability: "comingSoon",
     name: "Mary",
-    role: "社区咖啡店咖啡师 · 入门点单",
+    role: "社区咖啡店咖啡师",
     storyId: null,
     episode: "专属剧情 · 待公布",
     storyTitle: "故事正在筹备中",
@@ -113,7 +114,7 @@ const demoNpcLibrary = [
     storyTitle: "这个想法是谁的？",
     storyDescription: "在方案提交前，和 Cassie 厘清原创、执行与项目负责人的正式记录。",
     estimatedMinutes: 6,
-    level: "B1–B2 · 职场协商",
+    level: "B1–B2 · 英语",
     accent: "#f6b1ca",
     background: "./cassie-office-background.jpeg",
     selectImage: "./npc/cassie/Cassie_00_grid_select.png",
@@ -127,6 +128,15 @@ const demoNpcLibrary = [
     },
   },
 ];
+
+function sortNpcLibrary(items) {
+  return [...items].sort((left, right) => {
+    const leftIndex = NPC_LIBRARY_ORDER.indexOf(left.id);
+    const rightIndex = NPC_LIBRARY_ORDER.indexOf(right.id);
+    return (leftIndex < 0 ? NPC_LIBRARY_ORDER.length : leftIndex) -
+      (rightIndex < 0 ? NPC_LIBRARY_ORDER.length : rightIndex);
+  });
+}
 
 const npcPresentation = Object.fromEntries(
   demoNpcLibrary.map((npc) => [
@@ -155,7 +165,7 @@ const storyPresentation = {
     title: "日本机场值机",
     synopsis: "从东京飞往上海前，用简单日语回答結衣的值机问题并拿到登机牌。",
   },
-  "hong-kong-mtr-directions-mike-yue-v3": {
+  "hong-kong-mtr-directions-mike-yue-v4": {
     title: "在港铁站问路",
     synopsis: "在天后站向 Mike 询问前往中环的路线，确认港岛线、方向、换乘和站数。",
   },
@@ -169,7 +179,7 @@ const storyPresentation = {
   },
 };
 
-let npcLibrary = demoNpcLibrary.map((npc) => ({ ...npc }));
+let npcLibrary = sortNpcLibrary(demoNpcLibrary.map((npc) => ({ ...npc })));
 let activeNpc = npcLibrary[0];
 
 const cyrusRounds = [
@@ -707,11 +717,14 @@ function normalizeApiNpc(apiNpc, story, presentationKey) {
     story?.presentation?.episode ||
     (hasPublishedStory ? presentation.episode.replace("LINGOSTORY · ", "") : "专属剧情 · 待公布");
   const level = story?.level || story?.presentation?.level || presentation.level.split(" · ")[0];
-  const displayLevel = story?.targetLanguage === "ja" && !String(level).includes("日语")
-    ? `${level} · 日语`
-    : story?.targetLanguage === "yue" && !String(level).includes("粤语")
-      ? `${level} · 粤语`
-      : level;
+  const languageLabel = {
+    en: "英语",
+    ja: "日语",
+    yue: "粤语",
+  }[story?.targetLanguage];
+  const displayLevel = languageLabel && !String(level).includes(languageLabel)
+    ? `${level} · ${languageLabel}`
+    : level;
   const estimatedMinutes =
     story?.estimatedMinutes ?? story?.presentation?.estimatedMinutes ?? 3;
   const storyTitle = firstNonEmptyString(
@@ -764,7 +777,7 @@ function normalizeApiNpc(apiNpc, story, presentationKey) {
 function buildApiNpcLibrary(npcPayload, storyPayload) {
   const apiNpcs = responseList(npcPayload, "npcs");
   const stories = responseList(storyPayload, "stories");
-  return apiNpcs.flatMap((apiNpc) => {
+  return sortNpcLibrary(apiNpcs.flatMap((apiNpc) => {
     const profile = apiNpc.profile || apiNpc;
     const apiId = apiNpc.id || profile.npcId;
     const displayName = apiNpc.displayName || profile.displayName || "";
@@ -789,7 +802,7 @@ function buildApiNpcLibrary(npcPayload, storyPayload) {
     // Product decision: expose exactly one story per NPC, preferring the newest published one.
     const story = publishedStories[0] || matchingStories[0];
     return [normalizeApiNpc(apiNpc, story, presentationKey)];
-  });
+  }));
 }
 
 function latestSessionEvent(session, predicate) {
@@ -1602,7 +1615,7 @@ async function initializeData({ force = false } = {}) {
     }
   } catch (error) {
     apiReady = false;
-    npcLibrary = demoNpcLibrary.map((npc) => ({ ...npc }));
+    npcLibrary = sortNpcLibrary(demoNpcLibrary.map((npc) => ({ ...npc })));
     activeNpc =
       npcLibrary.find(
         (npc) =>
