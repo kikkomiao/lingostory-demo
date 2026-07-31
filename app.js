@@ -8,6 +8,7 @@ const PLAYTHROUGH_STORAGE_KEY = "lingostory.playthroughId";
 const REQUESTED_NPC_ID = String(new URLSearchParams(window.location.search).get("npc") || "")
   .trim()
   .toLowerCase();
+const OPEN_LIBRARY_DIRECTLY = new URLSearchParams(window.location.search).get("library") === "1";
 
 const demoNpcLibrary = [
   {
@@ -2239,7 +2240,7 @@ $("conversationModal").addEventListener("click", (event) => {
 const gameEntry = $("gameEntry");
 const gameEntryTrigger = $("gameEntryTrigger");
 const forceGameEntry = new URLSearchParams(window.location.search).get("welcome") === "1";
-if (REQUESTED_NPC_ID && !forceGameEntry) {
+if ((REQUESTED_NPC_ID || OPEN_LIBRARY_DIRECTLY) && !forceGameEntry) {
   gameEntry.classList.add("hidden");
   document.body.classList.remove("game-entry-open");
 } else {
