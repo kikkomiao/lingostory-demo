@@ -2222,17 +2222,21 @@ $("conversationModal").addEventListener("click", (event) => {
 });
 
 const gameEntry = $("gameEntry");
+const gameEntryTrigger = $("gameEntryTrigger");
 const forceGameEntry = new URLSearchParams(window.location.search).get("welcome") === "1";
 if (REQUESTED_NPC_ID && !forceGameEntry) {
   gameEntry.classList.add("hidden");
   document.body.classList.remove("game-entry-open");
 } else {
-  gameEntry.addEventListener(
+  gameEntryTrigger.addEventListener(
     "click",
     () => {
-      gameEntry.classList.add("is-leaving");
-      document.body.classList.remove("game-entry-open");
-      window.setTimeout(() => gameEntry.classList.add("hidden"), 430);
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      gameEntry.classList.add("is-transitioning");
+      window.setTimeout(() => {
+        gameEntry.classList.add("hidden");
+        document.body.classList.remove("game-entry-open");
+      }, reducedMotion ? 80 : 1100);
     },
     { once: true },
   );

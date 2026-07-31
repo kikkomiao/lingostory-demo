@@ -11,6 +11,7 @@ const playLabel = document.querySelector("[data-play-label]");
 const transitionLayer = document.querySelector("[data-scene-transition]");
 const transitionWord = document.querySelector("[data-transition-word]");
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const entryMode = new URLSearchParams(window.location.search).get("entry") === "1";
 
 const names = [
   "把外语练进真实生活",
@@ -30,7 +31,7 @@ const englishExamples = [
 ];
 
 let current = 0;
-let playing = true;
+let playing = !entryMode;
 let slideTimer = 0;
 let transitionTimer = 0;
 let transitionCleanupTimer = 0;
@@ -196,3 +197,4 @@ document.addEventListener("visibilitychange", () => {
 });
 
 applySlide(0);
+if (entryMode) setPlaying(false);
