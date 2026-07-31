@@ -76,27 +76,25 @@ body.game-entry-open { overflow: hidden; }
   object-fit: cover;
   object-position: center;
   transform: scale(1.01);
-  filter: sepia(.14) saturate(.9) brightness(1.04);
 }
 
 .game-entry-shade {
   z-index: -1;
   background:
-    linear-gradient(180deg, rgba(255, 246, 226, .3), rgba(255, 239, 205, .08) 42%, transparent 65%),
-    linear-gradient(0deg, rgba(56, 38, 19, .38), transparent 34%),
-    radial-gradient(circle at 50% 17%, rgba(255, 250, 238, .2) 0 24%, transparent 68%);
+    linear-gradient(180deg, rgba(255, 250, 238, .12), transparent 46%),
+    linear-gradient(0deg, rgba(56, 38, 19, .38), transparent 30%);
 }
 
 .game-entry-title {
-  width: min(620px, 54vw);
-  margin-top: clamp(42px, 7vh, 86px);
+  width: min(560px, 48vw);
+  margin-top: clamp(34px, 6vh, 70px);
 }
 
 .game-entry-title img {
   display: block;
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 3px 0 rgba(255, 250, 238, .76));
+  filter: drop-shadow(0 2px 0 rgba(255, 255, 255, .72));
 }
 
 .game-entry-guide {
@@ -1764,8 +1762,8 @@ kbd {
 }
 
 @media (max-width: 520px) {
-  .game-entry-background { object-position: 51% center; }
-  .game-entry-title { width: min(82vw, 460px); margin-top: 9vh; }
+  .game-entry-background { object-position: 56% center; }
+  .game-entry-title { width: min(76vw, 430px); margin-top: 7vh; }
   .game-entry-guide { bottom: 5vh; gap: 8px; min-height: 48px; padding: 10px 16px; font-size: 13px; }
   .app-shell { padding: 0 10px 16px; }
   .brand-wordmark { width: 126px; }
