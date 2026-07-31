@@ -982,8 +982,14 @@ function renderLiveSession(session, npcReply = null, userText = "") {
 
   const sessionNpcId = session.activeNpc?.id;
   const sessionNpc = npcLibrary.find((npc) => npc.id === sessionNpcId);
-  if (sessionNpc && sessionNpc !== activeNpc) {
-    activeNpc = sessionNpc;
+  const boundDisplayName = session.activeNpc?.displayName || session.activeNpc?.name;
+  if (
+    sessionNpc &&
+    (sessionNpc !== activeNpc || (boundDisplayName && activeNpc.name !== boundDisplayName))
+  ) {
+    // Keep the display name stored on an old playthrough. This lets archived Kate
+    // sessions resume as Kate while every new catalog entry uses 結衣.
+    activeNpc = boundDisplayName ? { ...sessionNpc, name: boundDisplayName } : sessionNpc;
     applyActiveNpc();
   }
 
@@ -1067,10 +1073,10 @@ function renderLiveSession(session, npcReply = null, userText = "") {
 function controllerFeedback(controller) {
   if (!controller) return "可以继续说话或使用文本输入";
   if (activeNpc.targetLanguage === "ja") {
-    if (controller.reason === "stay") return "Kate 会自然地再确认一次";
+    if (controller.reason === "stay") return `${activeNpc.name} 会自然地再确认一次`;
     if (controller.outcome === "success") return "回答已确认，继续下一项";
     if (controller.outcome === "partial" || controller.outcome === "failure") {
-      return "Kate 已提供简单提示，流程继续";
+      return `${activeNpc.name} 已提供简单提示，流程继续`;
     }
   }
   if (controller.outcome === "success") return "表达有效，剧情已进入下一阶段";
@@ -1483,7 +1489,10 @@ async function restorePlaythrough() {
     const payload = await apiRequest(`/api/playthroughs/${encodeURIComponent(sessionId)}`);
     const session = payload.session || payload;
     const sessionNpc = npcLibrary.find((npc) => npc.id === session.activeNpc?.id);
-    if (sessionNpc) activeNpc = sessionNpc;
+    const boundDisplayName = session.activeNpc?.displayName || session.activeNpc?.name;
+    if (sessionNpc) {
+      activeNpc = boundDisplayName ? { ...sessionNpc, name: boundDisplayName } : sessionNpc;
+    }
     applyActiveNpc();
     document.querySelector(".experience").classList.remove("library-mode");
     $("npcLibraryOverlay").classList.add("hidden");

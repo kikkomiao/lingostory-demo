@@ -6,27 +6,39 @@ import { extname, join, normalize } from "node:path";
 const root = new URL("../", import.meta.url).pathname;
 const emotions = ["neutral", "happy", "sad", "angry", "nervous", "surprised"];
 const profiles = [
-  ["cassie", "Cassie", "comingSoon", "Front-desk coordinator at a neighborhood community center"],
+  ["cassie", "Cassie", "available", "Customer Experience Project Coordinator"],
   ["mary", "Mary", "comingSoon", "Community library assistant and everyday conversation partner"],
   ["mike", "Mike", "comingSoon", "Customer support coordinator at a local office-supply company"],
-  ["kate", "Kate", "available", "Japanese-speaking cabin crew member"],
+  ["kate", "結衣", "available", "Airline staff member assisting passengers at the airport"],
   ["cyrus", "Cyrus", "available", "Senior executive at a large technology company"],
 ];
 
-function createSession({ japanese = false } = {}) {
+function createSession({ story = "cyrus" } = {}) {
+  const japanese = story === "yui";
+  const cassie = story === "cassie";
   return {
     id: "fixture-session",
     sessionId: "fixture-session",
-    storyId: japanese ? "japan-airport-checkin-kate-ja-v1" : "lunch-mixup-cyrus-v1",
-    storyTitle: japanese ? "日本の空港でチェックイン" : "The Lunch Mix-Up",
-    playerRole: japanese ? "あなたは東京から上海へ向かう旅客です。" : "You are an employee.",
+    storyId: japanese
+      ? "japan-airport-checkin-yui-ja-v2"
+      : cassie
+        ? "whose-idea-cassie-en-v1"
+        : "lunch-mixup-cyrus-v1",
+    storyTitle: japanese ? "日本の空港でチェックイン" : cassie ? "Whose Idea Was It?" : "The Lunch Mix-Up",
+    playerRole: japanese
+      ? "あなたは東京から上海へ向かう旅客です。"
+      : cassie
+        ? "You are Cassie's peer and collaborator."
+        : "You are an employee.",
     opening: japanese
-      ? "東京の空港で、Kate が予約名を確認します。"
-      : "You discover the lunch mix-up as Cyrus walks toward the office.",
+      ? "東京の空港で、結衣が予約名を確認します。"
+      : cassie
+        ? "The meeting has ended. Cassie asks you not to correct the public record yet."
+        : "You discover the lunch mix-up as Cyrus walks toward the office.",
     targetLanguage: japanese ? "ja" : "en",
     activeNpc: {
-      id: japanese ? "kate" : "cyrus",
-      displayName: japanese ? "Kate" : "Cyrus",
+      id: japanese ? "kate" : cassie ? "cassie" : "cyrus",
+      displayName: japanese ? "結衣" : cassie ? "Cassie" : "Cyrus",
       emotionId: "neutral",
       voiceProfile: japanese
         ? {
@@ -42,22 +54,43 @@ function createSession({ japanese = false } = {}) {
             language: "English",
           },
     },
-    currentBeatId: japanese ? "confirm_name" : "intercept",
-    currentGoal: japanese ? "予約の名前を Kate に伝える。" : "Get Cyrus's attention before he reaches the lunch.",
-    currentHint: { level: 1, text: japanese ? "自分の名前を短く伝えてください。" : "Ask Cyrus to stop before explaining." },
+    currentBeatId: japanese ? "confirm_name" : cassie ? "respond_request" : "intercept",
+    currentGoal: japanese
+      ? "予約の名前を結衣に伝える。"
+      : cassie
+        ? "Respond to Cassie's request without giving up your claim."
+        : "Get Cyrus's attention before he reaches the lunch.",
+    currentHint: {
+      level: 1,
+      text: japanese
+        ? "自分の名前を短く伝えてください。"
+        : cassie
+          ? "Acknowledge her concern and say the record still needs correcting."
+          : "Ask Cyrus to stop before explaining.",
+    },
     presentation: {
       zhCN: {
         opening: japanese
-          ? "你来到东京机场的值机柜台，Kate 请你说出预订姓名。"
-          : "你发现两份午饭拿反了，而 Cyrus 正走向办公室。",
-        currentGoal: japanese ? "告诉 Kate 你的预订姓名。" : "在 Cyrus 进门前叫住他。",
+          ? "你来到东京机场的值机柜台，結衣请你说出预订姓名。"
+          : cassie
+            ? "会议刚结束，Cassie 希望你暂时不要纠正公开记录。"
+            : "你发现两份午饭拿反了，而 Cyrus 正走向办公室。",
+        currentGoal: japanese
+          ? "告诉結衣你的预订姓名。"
+          : cassie
+            ? "回应 Cassie，但不要放弃对原创贡献的主张。"
+            : "在 Cyrus 进门前叫住他。",
         currentHint: {
           level: 1,
-          text: japanese ? "简短说出自己的姓名。" : "先明确请 Cyrus 停一下，再解释发生了什么。",
+          text: japanese
+            ? "简短说出自己的姓名。"
+            : cassie
+              ? "先回应她的压力，再明确正式记录仍需纠正。"
+              : "先明确请 Cyrus 停一下，再解释发生了什么。",
         },
       },
     },
-    remainingTurns: 1,
+    remainingTurns: cassie ? 6 : 1,
     progress: { current: 1, total: 6, percent: 0 },
     phase: "active",
     events: [],
@@ -87,10 +120,22 @@ function turnCopy(turnNumber) {
         turnNumber === 1
           ? "ありがとうございます。お預けになる荷物はありますか。"
           : "窓側と通路側、どちらがいいですか。",
-      stageText: "Kate confirms the check-in information.",
-      stageTextZh: "Kate 确认值机信息并继续下一项。",
+      stageText: "結衣 confirms the check-in information.",
+      stageTextZh: "結衣确认值机信息并继续下一项。",
       emotionId: turnNumber === 1 ? "neutral" : "happy",
     };
+  }
+  if (session.activeNpc.id === "cassie") {
+    const cassieTurns = [
+      ["I know this looks unfair. Please let me explain before we change the record.", "Cassie closes the meeting notes and waits for your answer.", "Cassie 合上会议记录，等待你的回应。", "nervous"],
+      ["You're right: the core idea came from you. I developed the case and presented it.", "Cassie separates the original idea from the later execution work.", "Cassie 将原创想法与后续执行工作分开说明。", "neutral"],
+      ["I was under pressure to show ownership, but that doesn't justify leaving you out.", "Cassie acknowledges the performance pressure without using it as an excuse.", "Cassie 承认绩效压力，但没有把它当成借口。", "sad"],
+      ["The proposal auto-submits in ten minutes, and I'm currently the only owner listed.", "A submission reminder appears on the project screen.", "项目屏幕弹出十分钟后自动提交的提醒。", "surprised"],
+      ["I can record your authorship and change the owner field. Tell me the arrangement you want.", "Cassie opens the public post and formal ownership fields.", "Cassie 打开公开帖子和正式负责人字段。", "neutral"],
+      ["Done. The correction is public and the formal ownership record has changed.", "Cassie sends the correction and submits the updated proposal.", "Cassie 发出更正，并提交修改后的方案。", "happy"],
+    ];
+    const [utterance, stageText, stageTextZh, emotionId] = cassieTurns[Math.min(turnNumber - 1, cassieTurns.length - 1)];
+    return { utterance, stageText, stageTextZh, emotionId };
   }
   if (turnNumber === 1) {
     return {
@@ -119,6 +164,49 @@ function advanceSession(turnNumber, emotionId) {
       session.presentation.zhCN.currentHint = { level: 1, text: "说明有无行李以及数量。" };
       session.remainingTurns = 2;
       session.progress = { current: 2, total: 6, percent: 33 };
+    }
+    return;
+  }
+
+  if (session.activeNpc.id === "cassie") {
+    const beats = ["private_reason", "clarify_contributions", "performance_pressure", "deadline_reveal", "negotiate_record", "implement_change"];
+    const goals = [
+      "Hear Cassie's explanation while protecting your claim.",
+      "Confirm who created the idea and who developed the case.",
+      "Respond to the performance pressure without losing focus.",
+      "React to the ten-minute submission deadline.",
+      "Negotiate credit, ownership, and the next presentation.",
+      "Require the agreement to be implemented now.",
+    ];
+    if (turnNumber < 6) {
+      session.currentBeatId = beats[turnNumber];
+      session.currentGoal = goals[turnNumber];
+      session.presentation.zhCN.currentGoal = [
+        "先听解释，同时守住原创贡献。",
+        "确认原创想法和案例完善分别由谁完成。",
+        "回应绩效压力，但不要偏离正式记录。",
+        "处理十分钟后的自动提交期限。",
+        "谈判署名、负责人和下次汇报安排。",
+        "要求立即落实口头协议。",
+      ][turnNumber];
+      session.remainingTurns = 6 - turnNumber;
+      session.progress = { current: turnNumber + 1, total: 6, percent: Math.round((turnNumber / 6) * 100) };
+    } else {
+      session.currentBeatId = null;
+      session.currentGoal = null;
+      session.currentHint = null;
+      session.presentation.zhCN.currentGoal = null;
+      session.presentation.zhCN.currentHint = null;
+      session.remainingTurns = 0;
+      session.progress = { current: 6, total: 6, percent: 100 };
+      session.phase = "ended";
+      session.ending = "good";
+      session.endingId = "fair_joint_record";
+      session.presentation.zhCN.ending = {
+        stamp: "贡献已写清",
+        title: "共同署名，分工明确",
+        description: "更正已经发出。原创与执行贡献分别写清，正式负责人记录也已改为共同负责。",
+      };
     }
     return;
   }
@@ -224,18 +312,32 @@ const server = createServer(async (request, response) => {
           createdAt: "2026-07-31T00:00:00.000Z",
         },
         {
-          id: "japan-airport-checkin-kate-ja-v1",
+          id: "japan-airport-checkin-yui-ja-v2",
           title: "日本の空港でチェックイン",
           titleZh: "日本机场值机",
           synopsis: "東京から上海へ出発する前に、簡単な質問に答えます。",
-          synopsisZh: "从东京飞往上海前，用简单日语回答 Kate 的值机问题并拿到登机牌。",
-          npc: "Kate",
+          synopsisZh: "从东京飞往上海前，用简单日语回答結衣的值机问题并拿到登机牌。",
+          npc: "結衣",
           npcId: "kate",
           status: "published",
           level: "JLPT N4–N3",
           estimatedMinutes: 4,
           targetLanguage: "ja",
           createdAt: "2026-08-01T00:00:00.000Z",
+        },
+        {
+          id: "whose-idea-cassie-en-v1",
+          title: "Whose Idea Was It?",
+          titleZh: "这个想法是谁的？",
+          synopsis: "Clarify credit and change the formal ownership record before submission.",
+          synopsisZh: "在提交前厘清原创与执行贡献，并真正修改署名和负责人记录。",
+          npc: "Cassie",
+          npcId: "cassie",
+          status: "published",
+          level: "B1–B2",
+          estimatedMinutes: 6,
+          targetLanguage: "en",
+          createdAt: "2026-08-01T01:00:00.000Z",
         },
       ],
     });
@@ -250,6 +352,26 @@ const server = createServer(async (request, response) => {
       localization: { playerRole: "你是一名员工，正在工作时间与经理 Cyrus 沟通。" },
     });
   }
+  if (url.pathname === "/api/stories/japan-airport-checkin-yui-ja-v2") {
+    return json(response, 200, {
+      id: "japan-airport-checkin-yui-ja-v2",
+      title: "日本の空港でチェックイン",
+      npcId: "kate",
+      status: "published",
+      playerRole: "あなたは東京から上海へ向かう旅客です。",
+      localization: { playerRole: "你是一名准备从东京飞往上海的旅客。" },
+    });
+  }
+  if (url.pathname === "/api/stories/whose-idea-cassie-en-v1") {
+    return json(response, 200, {
+      id: "whose-idea-cassie-en-v1",
+      title: "Whose Idea Was It?",
+      npcId: "cassie",
+      status: "published",
+      playerRole: "You are Cassie's peer and collaborator on a customer-retention proposal.",
+      localization: { playerRole: "你是 Cassie 的同级同事，与她共同参与一项客户留存方案。" },
+    });
+  }
   if (
     url.pathname === "/api/stories/lunch-mixup-cyrus-v1/playthroughs" &&
     request.method === "POST"
@@ -260,11 +382,20 @@ const server = createServer(async (request, response) => {
     return json(response, 201, { session });
   }
   if (
-    url.pathname === "/api/stories/japan-airport-checkin-kate-ja-v1/playthroughs" &&
+    url.pathname === "/api/stories/japan-airport-checkin-yui-ja-v2/playthroughs" &&
     request.method === "POST"
   ) {
-    session = createSession({ japanese: true });
+    session = createSession({ story: "yui" });
     turnResponses.clear();
+    return json(response, 201, { session });
+  }
+  if (
+    url.pathname === "/api/stories/whose-idea-cassie-en-v1/playthroughs" &&
+    request.method === "POST"
+  ) {
+    session = createSession({ story: "cassie" });
+    turnResponses.clear();
+    reviewStatus = "not_started";
     return json(response, 201, { session });
   }
   if (
