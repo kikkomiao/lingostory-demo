@@ -772,8 +772,8 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   );
   const replyText = npcReply?.utterance || latestNpcUtterance?.text;
   const replyStageText =
-    npcReply?.stageText ||
     latestNpcAction?.presentation?.zhCN?.stageText ||
+    npcReply?.stageText ||
     latestNpcAction?.stageText;
   const replyEmotion =
     npcReply?.emotionId ||
