@@ -71,7 +71,7 @@ const demoNpcLibrary = [
     storyDescription: "Mike 会用简单粤语协助你确认从天后站前往中环的固定路线。",
     level: "故事待定",
     accent: "#f2a05f",
-    background: "./office-background-v2.png",
+    background: "./mike-mtr-background-v2.png",
     selectImage: "./npc/mike/Mike_00_grid_select.png",
     emotionAssets: {
       neutral: "./npc/mike/Mike_01_neutral.png",
