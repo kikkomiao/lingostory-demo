@@ -25,6 +25,14 @@
         type="button"
         aria-label="点击任意地方进入 LingoStory 学习"
       ></button>
+      <button
+        id="entrySoundBtn"
+        class="game-entry-sound"
+        type="button"
+        data-sound-toggle
+        aria-pressed="true"
+        aria-label="关闭背景音乐和按钮音效"
+      >♪</button>
       <div class="game-entry-transition" aria-hidden="true">
         <i></i><i></i><i></i><i></i>
         <strong>LISTEN!</strong>
@@ -40,7 +48,14 @@
           <button id="apiRetryBtn" class="connection-retry" type="button" hidden>
             重新连接
           </button>
-          <button id="soundBtn" class="icon-btn" type="button" aria-label="切换声音">♪</button>
+          <button
+            id="soundBtn"
+            class="icon-btn"
+            type="button"
+            data-sound-toggle
+            aria-pressed="true"
+            aria-label="关闭背景音乐和按钮音效"
+          >♪</button>
           <button id="homeBtn" class="soft-btn" type="button">← 返回首页</button>
           <button
             id="conversationPanel"
@@ -338,7 +353,8 @@
         </div>
       </section>
     </main>
-    <script src="./app.js?v=20260801-mary-ready"></script>
+    <script src="./audio.js?v=20260801-menu-audio"></script>
+    <script src="./app.js?v=20260801-menu-audio"></script>
     <script src="./vendor/voice/ort.min.js"></script>
     <script src="./vendor/voice/vad.bundle.min.js"></script>
     <script type="module" src="./voice.js"></script>

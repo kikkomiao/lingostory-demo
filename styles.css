@@ -81,6 +81,34 @@ body.game-entry-open { overflow: hidden; }
   cursor: pointer;
 }
 
+.game-entry-sound {
+  position: absolute;
+  top: 22px;
+  right: 24px;
+  z-index: 4;
+  width: 46px;
+  height: 46px;
+  border: 3px solid #17252e;
+  border-radius: 15px 18px 14px 17px;
+  background: #fffaf0;
+  box-shadow: 3px 4px 0 #17252e;
+  color: #17252e;
+  font-size: 20px;
+  font-weight: 1000;
+  cursor: pointer;
+  transition: opacity .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+
+.game-entry-sound:hover {
+  box-shadow: 1px 2px 0 #17252e;
+  transform: translate(2px, 2px) rotate(2deg);
+}
+
+.game-entry.is-exiting .game-entry-sound {
+  pointer-events: none;
+  opacity: 0;
+}
+
 .game-entry-trigger:focus-visible {
   outline: 6px solid var(--yellow);
   outline-offset: -10px;
@@ -1779,6 +1807,7 @@ kbd {
 }
 
 @media (max-width: 520px) {
+  .game-entry-sound { top: 14px; right: 14px; width: 42px; height: 42px; }
   .app-shell { padding: 0 10px 16px; }
   .brand-wordmark { width: 126px; }
   .topbar-right { gap: 6px; }

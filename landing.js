@@ -12,6 +12,7 @@ const transitionLayer = document.querySelector("[data-scene-transition]");
 const transitionWord = document.querySelector("[data-transition-word]");
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const entryMode = new URLSearchParams(window.location.search).get("entry") === "1";
+document.body.classList.toggle("entry-mode", entryMode);
 
 const names = [
   "把外语练进真实生活",
