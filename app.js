@@ -2176,7 +2176,7 @@ function resetStoryState() {
   $("translation").textContent = isJapanese
     ? "結衣正在值机区域协助你完成手续。"
     : isCantonese
-      ? "车站工作人员 Mike 请你先说明目的地。"
+      ? "附近的友善路人 Mike 请你先说明目的地。"
       : offline.openingDetail;
   $("speakerName").textContent = "旁白";
   $("voiceStatus").textContent =
