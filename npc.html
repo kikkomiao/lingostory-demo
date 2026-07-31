@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#fff7e8" />
+    <meta name="description" content="查看 LingoStory NPC 的角色设定、对话风格和故事关系。" />
+    <title>角色资料 · LingoStory</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./npc-detail.css" />
+  </head>
+  <body>
+    <main class="profile-shell">
+      <header class="profile-topbar">
+        <a class="brand" href="./index.html" aria-label="返回 LingoStory 角色库">
+          <span class="brand-mark">L</span>
+          <span>LingoStory</span>
+          <span class="beta">NPC FILE</span>
+        </a>
+        <div class="profile-topbar-actions">
+          <span id="detailConnectionStatus" class="connection-status" data-state="connecting">
+            <i aria-hidden="true"></i>
+            <span>正在读取角色资料</span>
+          </span>
+          <a class="profile-back" href="./index.html">← 返回角色库</a>
+        </div>
+      </header>
+
+      <section id="profileNotFound" class="profile-empty hidden" role="alert">
+        <span aria-hidden="true">?</span>
+        <h1>没有找到这位角色</h1>
+        <p>角色可能已经下线，或者链接中的角色 ID 不正确。</p>
+        <a class="profile-primary" href="./index.html">返回角色库</a>
+      </section>
+
+      <section id="profileContent" class="profile-content" aria-live="polite">
+        <article id="profileHero" class="profile-hero">
+          <div class="profile-portrait">
+            <span id="availabilityBadge" class="profile-availability">正在加载</span>
+            <img id="npcPortrait" src="./npc/cyrus/Cyrus_00_grid_select.png" alt="Cyrus 的角色立绘" />
+          </div>
+          <div class="profile-intro">
+            <span class="eyebrow">LINGOSTORY · CHARACTER PROFILE</span>
+            <h1 id="npcName">Cyrus</h1>
+            <p id="npcRole" class="profile-role" lang="en">Senior executive at a large technology company</p>
+            <div id="emotionChips" class="profile-chips" aria-label="支持的剧情情绪"></div>
+            <p id="profileSource" class="profile-source">正在读取后端角色资料…</p>
+            <div class="profile-actions">
+              <a id="storyAction" class="profile-primary hidden" href="./index.html">进入专属故事 →</a>
+              <a class="profile-secondary" href="./index.html">查看其他角色</a>
+            </div>
+          </div>
+        </article>
+
+        <section class="profile-detail-grid" aria-label="角色详细资料">
+          <article class="profile-detail-card player-card">
+            <span class="detail-number">01</span>
+            <span class="detail-label">PLAYER ROLE · 你的身份</span>
+            <h2>你在故事里是谁？</h2>
+            <p id="playerRole" lang="en">专属故事确定后，这里会显示你与角色相遇时的身份。</p>
+          </article>
+
+          <article class="profile-detail-card personality-card">
+            <span class="detail-number">02</span>
+            <span class="detail-label">PERSONALITY · 性格</span>
+            <h2>对方是什么样的人？</h2>
+            <p id="npcPersonality" lang="en">正在加载角色性格…</p>
+          </article>
+
+          <article class="profile-detail-card relationship-card">
+            <span class="detail-number">03</span>
+            <span class="detail-label">RELATIONSHIP · 你们的关系</span>
+            <h2>对方会如何看待你？</h2>
+            <p id="npcRelationship" lang="en">正在加载角色关系…</p>
+          </article>
+
+          <article class="profile-detail-card speaking-card">
+            <span class="detail-number">04</span>
+            <span class="detail-label">SPEAKING STYLE · 对话风格</span>
+            <h2>对方通常怎么说话？</h2>
+            <p id="npcSpeakingStyle" lang="en">正在加载对话风格…</p>
+          </article>
+        </section>
+
+        <footer class="profile-footnote">
+          <span aria-hidden="true">✦</span>
+          <p>这些资料来自后端公开角色配置，用于帮助你在进入故事前理解身份、关系和沟通方式。</p>
+        </footer>
+      </section>
+    </main>
+    <script src="./npc-detail.js"></script>
+  </body>
+</html>

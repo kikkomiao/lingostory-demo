@@ -1,7 +1,7 @@
 # LingoStory 前后端实测差异与联调清单
 
 > 最新复核：2026-07-31
-> 前端：`codex/frontend-api-integration@0519647`
+> 前端：第二轮联调适配（基于 `0519647`）
 > 后端：`chenjingyin/lingostory` `main@ac17433`
 
 ## 0. 最新状态
@@ -15,6 +15,16 @@
 - 刷新恢复时分别读取 `npc_utterance` 和 `npc_action`，不再丢失最近台词。
 - 消费 `synopsisZh`、`session.presentation.zhCN` 等可用中文展示字段。
 - 根据稳定错误码给出中文提示，并保留同一 `clientTurnId` 重试。
+- 使用健康检查的 `protocolVersion` 做主版本兼容保护。
+- 使用 `controller.outcome` 提供轻量推进反馈，不展示内部状态机 ID。
+- 独立角色资料页消费 `playerRole`、`personality`、`relationship` 和
+  `speakingStyle`。
+- 使用公开 `events` 在剧情中及结局后提供可折叠完整对话记录。
+- 每个 NPC 只展示一个故事；多条已发布故事存在时选择最新一条。
+
+后端提供但学习端有意不展示：`debug`、`actionId`、内部 controller ID、
+`fallbackUsed`、NPC 签名/版本/记忆数量、模型/数据库诊断信息、故事结局分布
+和创建时间。`voiceProfile` 留待语音里程碑接入。
 
 仍需后端或部署侧配合：
 

@@ -23,6 +23,9 @@
             <i aria-hidden="true"></i>
             <span>正在连接剧情服务</span>
           </span>
+          <button id="apiRetryBtn" class="connection-retry" type="button" hidden>
+            重新连接
+          </button>
           <span id="levelLabel" class="level">NPC × 专属故事库 · A2–B1</span>
           <button id="soundBtn" class="icon-btn" type="button" aria-label="切换声音">♪</button>
           <button id="restartBtn" class="soft-btn" type="button">选择 NPC</button>
@@ -135,6 +138,14 @@
                 </div>
               </section>
 
+              <details id="endingConversationPanel" class="conversation-panel ending-conversation hidden">
+                <summary>
+                  <span>回看完整对话</span>
+                  <small id="endingConversationCount">0 条</small>
+                </summary>
+                <ol id="endingConversationList" class="conversation-list"></ol>
+              </details>
+
               <div class="review-grid">
                 <section class="trend-report">
                   <div class="section-heading">
@@ -234,6 +245,14 @@
             <span>实时转写</span>
             <p id="transcript">你的表达会出现在这里…</p>
           </section>
+
+          <details id="conversationPanel" class="conversation-panel hidden">
+            <summary>
+              <span>完整对话</span>
+              <small id="conversationCount">0 条</small>
+            </summary>
+            <ol id="conversationList" class="conversation-list"></ol>
+          </details>
 
           <form id="turnForm" class="turn-form hidden">
             <label for="turnInput">用自己的方式回应</label>

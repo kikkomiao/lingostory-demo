@@ -3,7 +3,11 @@ const $ = (id) => document.getElementById(id);
 const API_BASE_URL = String(window.LINGOSTORY_API_BASE_URL || "").replace(/\/$/, "");
 const API_TIMEOUT_MS = 12000;
 const API_DISCOVERY_TIMEOUT_MS = 2500;
+const SUPPORTED_API_PROTOCOL_MAJOR = "1";
 const PLAYTHROUGH_STORAGE_KEY = "lingostory.playthroughId";
+const REQUESTED_NPC_ID = String(new URLSearchParams(window.location.search).get("npc") || "")
+  .trim()
+  .toLowerCase();
 
 const demoNpcLibrary = [
   {
@@ -325,6 +329,7 @@ let liveSession = null;
 let pendingTurn = null;
 let submittingTurn = false;
 let userSelectedNpc = false;
+let apiConnecting = false;
 
 const emotionAliases = {
   focused: "neutral",
@@ -342,11 +347,12 @@ function normalizeEmotion(emotionId) {
     : "neutral";
 }
 
-function setConnectionState(state, label) {
+function setConnectionState(state, label, { retryable = false } = {}) {
   const status = $("connectionStatus");
   appMode = state;
   status.dataset.state = state;
   status.querySelector("span").textContent = label;
+  $("apiRetryBtn").hidden = !retryable;
   document.querySelector(".experience").classList.toggle("live-mode", state === "live");
   $("introModeHint").textContent =
     state === "live"
@@ -436,10 +442,20 @@ function firstNonEmptyString(...values) {
   return values.find((value) => typeof value === "string" && value.trim())?.trim();
 }
 
+function assertSupportedApiProtocol(protocolVersion) {
+  if (!protocolVersion) return;
+  const major = String(protocolVersion).split(".")[0];
+  if (major === SUPPORTED_API_PROTOCOL_MAJOR) return;
+  const error = new Error(`暂不支持后端 API 协议 ${protocolVersion}`);
+  error.code = "UNSUPPORTED_API_PROTOCOL";
+  error.retryable = false;
+  throw error;
+}
+
 function normalizeApiNpc(apiNpc, story, presentationKey) {
   const presentation = npcPresentation[presentationKey];
   const profile = apiNpc.profile || apiNpc;
-  const apiStatus = apiNpc.status || "available";
+  const apiStatus = apiNpc.status === "active" ? "available" : apiNpc.status || "available";
   const hasPublishedStory = Boolean(story && !["draft", "archived"].includes(story.status));
   const canStartStory = apiStatus === "available" && hasPublishedStory;
   const localizedStory = storyPresentation[story?.id] || {};
@@ -473,7 +489,7 @@ function normalizeApiNpc(apiNpc, story, presentationKey) {
         ? "disabled"
         : "comingSoon",
     name: apiNpc.displayName || profile.displayName || presentationKey,
-    role: profile.role || presentation.role,
+    role: presentation.role || profile.role,
     storyId: canStartStory ? story.id : null,
     estimatedMinutes,
     episode: episode.startsWith("LINGOSTORY") ? episode : `LINGOSTORY · ${episode}`,
@@ -488,7 +504,7 @@ function normalizeApiNpc(apiNpc, story, presentationKey) {
     selectImage: presentation.selectImage,
     emotionAssets: presentation.emotionAssets,
     supportedEmotions: Array.isArray(apiNpc.supportedEmotions)
-      ? apiNpc.supportedEmotions.map(normalizeEmotion)
+      ? [...new Set(apiNpc.supportedEmotions.map(normalizeEmotion))]
       : Object.keys(presentation.emotionAssets),
   };
 }
@@ -511,14 +527,92 @@ function buildApiNpcLibrary(npcPayload, storyPayload) {
         return legacyNpcName === displayName.toLowerCase() || legacyNpcName === presentationKey;
       },
     );
-    const story =
-      matchingStories.find((item) => item.status === "published") || matchingStories[0];
+    const publishedStories = matchingStories
+      .filter((item) => item.status === "published" || !item.status)
+      .sort(
+        (left, right) =>
+          (Date.parse(right.createdAt || "") || 0) -
+          (Date.parse(left.createdAt || "") || 0),
+      );
+    // Product decision: expose exactly one story per NPC, preferring the newest published one.
+    const story = publishedStories[0] || matchingStories[0];
     return [normalizeApiNpc(apiNpc, story, presentationKey)];
   });
 }
 
 function latestSessionEvent(session, predicate) {
   return [...(session.events || [])].reverse().find(predicate);
+}
+
+function conversationEntry(event, npcName) {
+  const localizedText = event.presentation?.zhCN?.text;
+  const localizedStageText = event.presentation?.zhCN?.stageText;
+  if (event.type === "user_utterance" && event.text) {
+    return { kind: "user", speaker: "你", text: event.text };
+  }
+  if (event.type === "npc_utterance" && event.text) {
+    return {
+      kind: "npc",
+      speaker: npcName,
+      text: event.text,
+      translation: localizedText && localizedText !== event.text ? localizedText : "",
+    };
+  }
+  if (event.type === "npc_action") {
+    const text = localizedStageText || event.stageText;
+    return text ? { kind: "action", speaker: "动作", text } : null;
+  }
+  if (event.type === "session_started") {
+    const text = localizedText || event.text;
+    return text ? { kind: "system", speaker: "旁白", text } : null;
+  }
+  if (event.type === "hint_shown") {
+    const text = localizedText || event.text;
+    return text ? { kind: "system", speaker: "提示", text } : null;
+  }
+  return null;
+}
+
+function populateConversationList(list, count, entries) {
+  list.replaceChildren();
+  entries.forEach((entry) => {
+    const item = document.createElement("li");
+    item.className = `conversation-item is-${entry.kind}`;
+    const speaker = document.createElement("span");
+    speaker.className = "conversation-speaker";
+    speaker.textContent = entry.speaker;
+    const copy = document.createElement("div");
+    const text = document.createElement("p");
+    text.className = "conversation-text";
+    text.textContent = entry.text;
+    copy.append(text);
+    if (entry.translation) {
+      const translation = document.createElement("p");
+      translation.className = "conversation-translation";
+      translation.textContent = entry.translation;
+      copy.append(translation);
+    }
+    item.append(speaker, copy);
+    list.append(item);
+  });
+  count.textContent = `${entries.length} 条`;
+}
+
+function renderConversation(session) {
+  const entries = (session.events || [])
+    .map((event) => conversationEntry(event, session.activeNpc?.displayName || activeNpc.name))
+    .filter(Boolean);
+  populateConversationList($("conversationList"), $("conversationCount"), entries);
+  populateConversationList(
+    $("endingConversationList"),
+    $("endingConversationCount"),
+    entries,
+  );
+  $("conversationPanel").classList.toggle("hidden", entries.length === 0);
+  $("endingConversationPanel").classList.toggle(
+    "hidden",
+    entries.length === 0 || session.phase !== "ended",
+  );
 }
 
 function setTurnBusy(busy) {
@@ -531,6 +625,7 @@ function setTurnBusy(busy) {
 
 function localizedApiError(error) {
   const messages = {
+    NPC_NOT_FOUND: "这个角色不存在或已被移除。",
     STORY_NOT_FOUND: "这个故事不存在或已被移除。",
     STORY_NOT_PUBLISHED: "这个故事暂时不可开始。",
     PLAYTHROUGH_NOT_FOUND: "没有找到上一次剧情记录，请重新开始。",
@@ -568,6 +663,8 @@ function renderLiveSession(session, npcReply = null, userText = "") {
     applyActiveNpc();
   }
 
+  renderConversation(session);
+
   if (session.phase === "ended") {
     showLiveEnding(session);
     return;
@@ -577,18 +674,20 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   const localizedSession = session.presentation?.zhCN;
   const currentHint = localizedSession?.currentHint || session.currentHint;
   const hint = typeof currentHint === "string" ? currentHint : currentHint?.text;
-  const beatLabel = session.currentBeatId ? String(session.currentBeatId).replaceAll("_", " ") : "当前剧情";
+  const stageLabel = progress?.current
+    ? `剧情阶段 ${progress.current}${progress.total ? `/${progress.total}` : ""}`
+    : "当前剧情";
   const latestNpcUtterance = latestSessionEvent(
     session,
-    (event) => event.actor === "npc" && Boolean(event.text),
+    (event) => event.type === "npc_utterance" && Boolean(event.text),
   );
   const latestNpcAction = latestSessionEvent(
     session,
-    (event) => event.actor === "npc" && Boolean(event.stageText),
+    (event) => event.type === "npc_action" && Boolean(event.stageText),
   );
   const latestUserEvent = latestSessionEvent(
     session,
-    (event) => event.actor === "user" && Boolean(event.text),
+    (event) => event.type === "user_utterance" && Boolean(event.text),
   );
   const replyText = npcReply?.utterance || latestNpcUtterance?.text;
   const replyStageText =
@@ -603,7 +702,7 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   const replyTranslation =
     npcReply?.translationZh || latestNpcUtterance?.presentation?.zhCN?.text || "";
 
-  $("roundLabel").textContent = `${beatLabel} · 沟通目标`;
+  $("roundLabel").textContent = `${stageLabel} · 沟通目标`;
   $("roundCount").textContent = progress?.total
     ? `${progress.current ?? 1} / ${progress.total}`
     : `${session.remainingTurns ?? "动态"} 回合`;
@@ -611,7 +710,7 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   $("taskTitle").textContent =
     localizedSession?.currentGoal || session.currentGoal || "继续自然地推动剧情";
   $("taskHint").textContent = hint || "表达你的真实意图，系统会在故事结束后集中复盘。";
-  $("sceneLabel").textContent = `真实剧情 · ${beatLabel}`;
+  $("sceneLabel").textContent = `真实剧情 · ${stageLabel}`;
   $("speakerName").textContent = replyText ? activeNpc.name : "旁白";
   $("subtitle").textContent =
     replyText ||
@@ -631,6 +730,14 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   $("keyboardTip").classList.add("hidden");
   hideTurnError();
   setCharacter(normalizeEmotion(replyEmotion));
+}
+
+function controllerFeedback(controller) {
+  if (!controller) return "文本回合已接入 · 语音将在 P2 开放";
+  if (controller.outcome === "success") return "表达有效，剧情已进入下一阶段";
+  if (controller.outcome === "partial") return "对方理解了一部分，可以继续补充";
+  if (controller.outcome === "failure") return "这次还没有推动目标，试着说得更明确";
+  return "表达已提交，剧情正在继续";
 }
 
 function showLiveEnding(session) {
@@ -705,8 +812,8 @@ async function submitLiveTurn(text, existingTurn = null) {
     });
     pendingTurn = null;
     $("turnInput").value = "";
-    $("voiceStatus").textContent = "表达已推动真实剧情";
     renderLiveSession(payload.session || payload, payload.npc || null, normalizedText);
+    $("voiceStatus").textContent = controllerFeedback(payload.controller);
   } catch (error) {
     showTurnError(error);
     $("voiceStatus").textContent = "发送未成功，剧情没有继续";
@@ -758,16 +865,31 @@ async function restorePlaythrough() {
   }
 }
 
-async function initializeData() {
+async function initializeData({ force = false } = {}) {
+  if (apiConnecting) return;
   if (window.location.protocol === "file:") {
     setConnectionState("demo", "离线演示");
+    const requestedDemoNpc = npcLibrary.find(
+      (npc) =>
+        npc.id === REQUESTED_NPC_ID &&
+        npc.availability === "available" &&
+        npc.storyId,
+    );
+    if (requestedDemoNpc) {
+      activeNpc = requestedDemoNpc;
+      clearStoredPlaythrough();
+      applyActiveNpc();
+      resetStory();
+    }
     return;
   }
 
+  apiConnecting = true;
   setConnectionState("connecting", "正在连接剧情服务");
   try {
     const health = await apiRequest("/api/health", { timeoutMs: API_DISCOVERY_TIMEOUT_MS });
     if (health.ok === false) throw new Error("剧情服务尚未就绪");
+    assertSupportedApiProtocol(health.protocolVersion);
     const [npcPayload, storyPayload] = await Promise.all([
       apiRequest("/api/npcs", { timeoutMs: API_DISCOVERY_TIMEOUT_MS }),
       apiRequest("/api/stories", { timeoutMs: API_DISCOVERY_TIMEOUT_MS }),
@@ -776,27 +898,55 @@ async function initializeData() {
     const defaultApiNpc = apiLibrary.find(
       (npc) => npc.availability === "available" && npc.storyId,
     );
+    const requestedApiNpc = apiLibrary.find(
+      (npc) =>
+        npc.id === REQUESTED_NPC_ID &&
+        npc.availability === "available" &&
+        npc.storyId,
+    );
     if (!defaultApiNpc) throw new Error("后端暂未提供可体验的公开剧情");
-    if (userSelectedNpc) {
+    if (userSelectedNpc && !force) {
       setConnectionState("demo", "本轮离线演示");
       return;
     }
 
     npcLibrary = apiLibrary;
-    activeNpc = defaultApiNpc;
+    activeNpc = requestedApiNpc || defaultApiNpc;
     apiReady = true;
     renderNpcLibrary();
     applyActiveNpc();
     setConnectionState("live", "真实 API");
-    await restorePlaythrough();
+    if (requestedApiNpc) {
+      clearStoredPlaythrough();
+      resetStory();
+    } else {
+      await restorePlaythrough();
+    }
   } catch (error) {
     apiReady = false;
     npcLibrary = demoNpcLibrary.map((npc) => ({ ...npc }));
-    activeNpc = npcLibrary[0];
+    activeNpc =
+      npcLibrary.find(
+        (npc) =>
+          npc.id === REQUESTED_NPC_ID &&
+          npc.availability === "available" &&
+          npc.storyId,
+      ) || npcLibrary[0];
     renderNpcLibrary();
     applyActiveNpc();
-    setConnectionState("demo", "离线演示");
+    const incompatibleProtocol = error.code === "UNSUPPORTED_API_PROTOCOL";
+    setConnectionState(
+      "demo",
+      incompatibleProtocol ? "API 协议不兼容 · 离线演示" : "AI 服务不可用 · 离线演示",
+      { retryable: error.retryable !== false },
+    );
     $("introModeHint").title = error.message;
+    if (activeNpc.id === REQUESTED_NPC_ID) {
+      clearStoredPlaythrough();
+      resetStory();
+    }
+  } finally {
+    apiConnecting = false;
   }
 }
 
@@ -811,6 +961,7 @@ function renderNpcLibrary() {
 
   npcLibrary.forEach((npc) => {
     const isPlayable = npc.availability === "available" && Boolean(npc.storyId);
+    const detailHref = `./npc.html?id=${encodeURIComponent(npc.id)}`;
     const emotionLabels = {
       neutral: "中性",
       happy: "开心",
@@ -846,6 +997,7 @@ function renderNpcLibrary() {
         <div class="npc-emotions" aria-label="支持的剧情情绪">
           ${supportedEmotionLabels}
         </div>
+        <a class="npc-details" href="${escapeHtml(detailHref)}">查看角色资料 →</a>
         <button
           class="npc-enter"
           type="button"
@@ -1227,6 +1379,14 @@ function resetStoryState() {
   $("endingOverlay").classList.add("hidden");
   $("endingOverlay").querySelector(".ending-card").classList.remove("story-only");
   $("liveReviewNotice").classList.add("hidden");
+  $("conversationPanel").classList.add("hidden");
+  $("conversationPanel").removeAttribute("open");
+  $("conversationList").replaceChildren();
+  $("conversationCount").textContent = "0 条";
+  $("endingConversationPanel").classList.add("hidden");
+  $("endingConversationPanel").removeAttribute("open");
+  $("endingConversationList").replaceChildren();
+  $("endingConversationCount").textContent = "0 条";
   $("progressFill").style.width = "0";
   $("roundLabel").textContent = "准备阶段";
   $("roundCount").textContent = appMode === "live" ? "动态剧情" : "0 / 4";
@@ -1356,6 +1516,10 @@ $("turnInput").addEventListener("keydown", (event) => {
 });
 $("retryTurnBtn").addEventListener("click", () => {
   if (pendingTurn) submitLiveTurn(pendingTurn.text, pendingTurn);
+});
+$("apiRetryBtn").addEventListener("click", () => {
+  userSelectedNpc = false;
+  initializeData({ force: true });
 });
 $("soundBtn").addEventListener("click", (event) => {
   event.currentTarget.textContent = event.currentTarget.textContent === "♪" ? "×" : "♪";
