@@ -30,23 +30,26 @@ const fallbackProfiles = {
   },
   kate: {
     id: "kate",
-    displayName: "Kate",
-    status: "comingSoon",
-    role: "Community library assistant who helps visitors find resources and practice everyday English",
-    roleZh: "社区图书馆助理，帮助访客查找资料并练习日常英语",
+    displayName: "結衣",
+    status: "available",
+    role: "Airline staff member assisting passengers at the airport",
+    roleZh: "在机场协助旅客的航司工作人员",
     personality:
-      "Warm, observant, practical, and gently humorous. She is patient with mistakes and asks thoughtful questions.",
+      "Calm, attentive, practical, and reassuring. She stays courteous under pressure and asks focused questions when an answer is unclear.",
     relationship:
-      "A familiar, supportive library contact who maintains friendly professional boundaries.",
+      "The airline staff member assisting you at the airport check-in counter.",
     speakingStyle:
-      "Natural, friendly English with short-to-medium sentences and common vocabulary.",
+      "Natural, courteous Japanese at approximately JLPT N4-N3 level, using concise service language.",
+    playerRole: "You are a passenger flying from Tokyo to Shanghai.",
+    playerRoleZh: "你是一名准备从东京飞往上海的旅客。",
     personalityZh:
-      "温暖、细心、务实，带有温和的幽默感。她对错误很有耐心，也会提出经过思考的问题。",
+      "冷静、细心、务实且让人安心。遇到没有听清的回答时，她会礼貌地聚焦追问。",
     relationshipZh:
-      "Kate 是你熟悉且可靠的图书馆联系人，态度友善，同时保持职业边界。",
-    speakingStyleZh: "使用自然友好的英语，常用词汇为主，句子长度较短或适中。",
+      "結衣是在机场值机柜台协助你办理手续的航司工作人员。",
+    speakingStyleZh: "使用自然、礼貌、简洁的日语服务表达，难度约为 JLPT N4–N3。",
     selectImage: "./npc/kate/Kate_00_grid_select.png",
     accent: "#cfe6ff",
+    storyTitle: "日本机场值机",
   },
   mike: {
     id: "mike",
@@ -71,43 +74,47 @@ const fallbackProfiles = {
   mary: {
     id: "mary",
     displayName: "Mary",
-    status: "comingSoon",
-    role: "Community library assistant and everyday conversation partner",
-    roleZh: "社区图书馆助理，也是你的日常会话伙伴",
+    status: "available",
+    role: "Barista at a friendly neighborhood café",
+    roleZh: "友好社区咖啡店的咖啡师",
     personality:
-      "Warm, observant, practical, and gently humorous. Mary listens carefully and admits mistakes.",
+      "Warm, patient, observant, and practical. Mary keeps first-time customers comfortable and never rushes a language learner.",
     relationship:
-      "A familiar, supportive community acquaintance who remains professionally appropriate.",
+      "Mary is the barista serving you while you order one drink at the café counter.",
     speakingStyle:
-      "Natural, friendly everyday English with clear sentences and moderate pacing.",
+      "Short, natural, friendly everyday English with clear café vocabulary and moderate pacing.",
     personalityZh:
-      "温暖、细心、务实，带有温和的幽默感。Mary 会认真倾听，也愿意承认错误。",
+      "温暖、耐心、细心且务实。Mary 会让第一次点单的顾客感到轻松，也不会催促语言学习者。",
     relationshipZh:
-      "Mary 是你熟悉且支持你的社区联系人，同时保持合适的职业边界。",
-    speakingStyleZh: "使用清晰、自然、友好的日常英语，语速适中。",
+      "Mary 是正在为你点单的咖啡师，你是在吧台购买一杯饮品的顾客。",
+    speakingStyleZh: "使用简短、自然、友好的日常英语，咖啡店词汇清楚，语速适中。",
     selectImage: "./npc/mary/Mary_00_grid_select.png",
     accent: "#d89a6a",
+    storyTitle: "在街角咖啡店点单",
   },
   cassie: {
     id: "cassie",
     displayName: "Cassie",
-    status: "comingSoon",
-    role: "Front-desk coordinator at a neighborhood community center",
-    roleZh: "社区中心前台协调员",
+    status: "available",
+    role: "Customer Experience Project Coordinator",
+    roleZh: "客户体验项目协调员",
     personality:
-      "Warm, observant, practical, and gently humorous. Cassie listens carefully and treats mistakes with patience.",
+      "Warm, articulate, practical, and ambitious. Cassie values collaboration, but under performance pressure she can avoid uncomfortable accountability.",
     relationship:
-      "A familiar community-center contact who remains friendly and professionally appropriate.",
+      "Cassie is your peer and project collaborator on a customer-retention proposal.",
     speakingStyle:
       "Clear conversational English with moderate pacing, common vocabulary, and concise explanations.",
+    playerRole: "You are Cassie's peer and collaborator on a customer-retention proposal.",
+    playerRoleZh: "你是 Cassie 的同级同事，与她共同参与一项客户留存方案。",
     personalityZh:
-      "温暖、细心、务实，带有温和的幽默感。Cassie 会认真倾听，也会耐心对待错误。",
+      "友善、善于表达、务实且有进取心。Cassie 重视合作，但在绩效压力下可能回避难堪的责任。",
     relationshipZh:
-      "Cassie 是你熟悉的社区中心联系人，态度友好，同时保持职业关系。",
+      "Cassie 是你的同级同事，也是这项客户留存方案的项目协作者。",
     speakingStyleZh:
       "使用清晰的日常英语，语速适中，以常见词汇和简洁解释为主。",
     selectImage: "./npc/cassie/Cassie_00_grid_select.png",
     accent: "#f6b1ca",
+    storyTitle: "这个想法是谁的？",
   },
 };
 

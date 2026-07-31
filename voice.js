@@ -321,7 +321,6 @@ class VoiceController {
               language: profile.language || targetLanguageConfig[this.targetLanguage].providerLanguage,
               response_format: "pcm",
               stream_audio: true,
-              split_granularity: "sentence",
               max_new_tokens: 1024,
             }),
           );

@@ -23,6 +23,7 @@ const demoNpcLibrary = [
     estimatedMinutes: 3,
     level: "A2–B1 · 职场沟通",
     accent: "#ffd95e",
+    background: "./office-background-v2.png",
     selectImage: "./npc/cyrus/Cyrus_00_grid_select.png",
     emotionAssets: {
       neutral: "./npc/cyrus/Cyrus_01_neutral.png",
@@ -37,12 +38,12 @@ const demoNpcLibrary = [
     id: "kate",
     source: "demo",
     availability: "comingSoon",
-    name: "Kate",
-    role: "客舱乘务员",
+    name: "結衣",
+    role: "航司工作人员",
     storyId: null,
     episode: "专属剧情 · 待公布",
     storyTitle: "故事正在筹备中",
-    storyDescription: "Kate 的日语机场值机场景正在编排，故事确定后即可开放。",
+    storyDescription: "結衣的日语机场值机场景正在编排，故事确定后即可开放。",
     level: "故事待定",
     accent: "#cfe6ff",
     selectImage: "./npc/kate/Kate_00_grid_select.png",
@@ -82,11 +83,11 @@ const demoNpcLibrary = [
     source: "demo",
     availability: "comingSoon",
     name: "Mary",
-    role: "社区图书馆助理 · 日常会话伙伴",
+    role: "社区咖啡店咖啡师 · 入门点单",
     storyId: null,
     episode: "专属剧情 · 待公布",
     storyTitle: "故事正在筹备中",
-    storyDescription: "Mary 的图书馆服务与日常会话场景正在编排，故事确定后即可开放。",
+    storyDescription: "Mary 的咖啡店点单场景需要连接后端后开放。",
     level: "故事待定",
     accent: "#d89a6a",
     selectImage: "./npc/mary/Mary_00_grid_select.png",
@@ -102,15 +103,17 @@ const demoNpcLibrary = [
   {
     id: "cassie",
     source: "demo",
-    availability: "comingSoon",
+    availability: "available",
     name: "Cassie",
-    role: "社区中心前台协调员",
-    storyId: null,
-    episode: "专属剧情 · 待公布",
-    storyTitle: "故事正在筹备中",
-    storyDescription: "Cassie 的社区活动与前台沟通场景正在编排，故事确定后即可开放。",
-    level: "故事待定",
+    role: "客户体验项目协调员",
+    storyId: "whose-idea-cassie-en-v1",
+    episode: "LINGOSTORY · EP.03",
+    storyTitle: "这个想法是谁的？",
+    storyDescription: "在方案提交前，和 Cassie 厘清原创、执行与项目负责人的正式记录。",
+    estimatedMinutes: 6,
+    level: "B1–B2 · 职场协商",
     accent: "#f6b1ca",
+    background: "./cassie-office-background.jpeg",
     selectImage: "./npc/cassie/Cassie_00_grid_select.png",
     emotionAssets: {
       neutral: "./npc/cassie/Cassie_01_neutral.png",
@@ -134,6 +137,7 @@ const npcPresentation = Object.fromEntries(
       level: npc.level,
       availability: npc.availability,
       accent: npc.accent,
+      background: npc.background,
       selectImage: npc.selectImage,
       emotionAssets: npc.emotionAssets,
     },
@@ -145,16 +149,24 @@ const storyPresentation = {
     title: "拿错了老板的午饭",
     synopsis: "在 Cyrus 走进办公室之前说明午餐拿错，并处理后续问题。",
   },
-  "japan-airport-checkin-kate-ja-v1": {
+  "japan-airport-checkin-yui-ja-v2": {
     title: "日本机场值机",
-    synopsis: "从东京飞往上海前，用简单日语回答 Kate 的值机问题并拿到登机牌。",
+    synopsis: "从东京飞往上海前，用简单日语回答結衣的值机问题并拿到登机牌。",
+  },
+  "whose-idea-cassie-en-v1": {
+    title: "这个想法是谁的？",
+    synopsis: "厘清原创与执行贡献，并在提交前让署名和负责人记录真正改变。",
+  },
+  "corner-cafe-order-mary-en-v1": {
+    title: "在街角咖啡店点单",
+    synopsis: "用入门英语回答 Mary 的常见点单问题，完成一杯属于自己的咖啡订单。",
   },
 };
 
 let npcLibrary = demoNpcLibrary.map((npc) => ({ ...npc }));
 let activeNpc = npcLibrary[0];
 
-const rounds = [
+const cyrusRounds = [
   {
     state: "S1",
     task: "在他进门前叫住他",
@@ -268,6 +280,204 @@ const rounds = [
     },
   },
 ];
+
+const cassieRounds = [
+  {
+    state: "S1",
+    task: "回应 Cassie 的请求",
+    hint: "明确说你愿意先听解释，还是要求她现在更正。",
+    seconds: 12,
+    scene: "会议室外 · 16:40",
+    mood: "等你表态",
+    replies: {
+      good: {
+        user: "I'll hear you out, but the credit still needs to be corrected.",
+        reply: "That's fair. Let me explain what happened before we decide how to correct it.",
+        zh: "这很公平。先让我解释发生了什么，再决定怎样更正。",
+        mood: "neutral",
+      },
+      mid: {
+        user: "Please correct the post now. We can discuss the details afterward.",
+        reply: "I understand, but I need you to recognize the work I added too.",
+        zh: "我明白，但我也希望你承认我补充的工作。",
+        mood: "nervous",
+      },
+      bad: {
+        user: "Fine. We can talk later.",
+        reply: "Thank you. I'll explain it later, then.",
+        zh: "谢谢。那我之后再解释。",
+        mood: "neutral",
+      },
+    },
+  },
+  {
+    state: "S2",
+    task: "厘清双方贡献",
+    hint: "分别说明谁提出核心创意、谁完善案例并完成展示。",
+    seconds: 14,
+    scene: "共享工位 · 16:42",
+    mood: "解释自己的工作",
+    replies: {
+      good: {
+        user: "I created the original concept. You developed the examples and presented it well.",
+        reply: "Yes. The concept came from your draft, and I built the presentation around it.",
+        zh: "是的。概念来自你的草稿，我在此基础上完成了演示。",
+        mood: "neutral",
+      },
+      mid: {
+        user: "The main idea was mine, but you also worked on it.",
+        reply: "I agree, but we should be more specific about what each of us did.",
+        zh: "我同意，但我们应该更具体地说明各自做了什么。",
+        mood: "nervous",
+      },
+      bad: {
+        user: "You took my idea and did nothing important.",
+        reply: "That's not accurate. I built the examples and defended the proposal in the meeting.",
+        zh: "这并不准确。我完善了案例，也在会上解释并支持了这个方案。",
+        mood: "angry",
+      },
+    },
+  },
+  {
+    state: "S3",
+    task: "回应绩效压力",
+    hint: "可以理解她的处境，但不要放弃自己的署名边界。",
+    seconds: 14,
+    scene: "项目区 · 16:44",
+    mood: "透露真实顾虑",
+    replies: {
+      good: {
+        user: "I understand your review is tomorrow, but my contribution still needs to be recorded.",
+        reply: "You're right. My review doesn't justify leaving your name out.",
+        zh: "你说得对。我的绩效评审不能成为漏掉你名字的理由。",
+        mood: "sad",
+      },
+      mid: {
+        user: "I understand, but this situation is not fair to me.",
+        reply: "I know. We need an arrangement that doesn't erase either person's work.",
+        zh: "我知道。我们需要一个不会抹去任何一方工作的安排。",
+        mood: "neutral",
+      },
+      bad: {
+        user: "Your review is not my problem.",
+        reply: "Maybe not, but dismissing it won't help us agree on the record.",
+        zh: "也许不是，但完全忽略这点不会帮助我们就记录达成一致。",
+        mood: "angry",
+      },
+    },
+  },
+  {
+    state: "S4",
+    task: "识别提交期限",
+    hint: "明确指出以后再解释已经不够，书面记录必须现在改变。",
+    seconds: 12,
+    scene: "提交提醒 · 16:46",
+    mood: "发现只剩十分钟",
+    replies: {
+      good: {
+        user: "A later promise isn't enough. We need to change the written record before submission.",
+        reply: "Agreed. We have ten minutes, so let's decide the exact wording now.",
+        zh: "同意。我们只剩十分钟，现在就确定具体措辞。",
+        mood: "surprised",
+      },
+      mid: {
+        user: "Can we fix the document before it goes out?",
+        reply: "Yes, but I need to know what ownership arrangement you want.",
+        zh: "可以，但我需要知道你希望怎样安排负责人。",
+        mood: "nervous",
+      },
+      bad: {
+        user: "Just remember to mention me next time.",
+        reply: "Okay. The current proposal will still go out under my name.",
+        zh: "好。不过当前方案仍会以我的名字提交。",
+        mood: "sad",
+      },
+    },
+  },
+  {
+    state: "S5",
+    task: "谈妥署名与负责人",
+    hint: "说清署名文字、负责人字段以及下一次由谁汇报。",
+    seconds: 16,
+    scene: "方案编辑页 · 16:48",
+    mood: "等待具体安排",
+    replies: {
+      good: {
+        user: "Credit me for the original concept, credit you for the presentation, and list us as joint owners.",
+        reply: "That's specific and fair. I'll use that wording and list us jointly.",
+        zh: "这个方案具体也公平。我会使用这段措辞，并将我们列为共同负责人。",
+        mood: "happy",
+      },
+      mid: {
+        user: "Credit my original concept, and you can remain the delivery owner.",
+        reply: "I can do that and include you in the next presentation.",
+        zh: "可以，我也会让你参加下一次汇报。",
+        mood: "neutral",
+      },
+      bad: {
+        user: "Let's leave it for now and work it out later.",
+        reply: "All right. Then the owner field stays as it is for this submission.",
+        zh: "好。那这次提交的负责人字段维持不变。",
+        mood: "sad",
+      },
+    },
+  },
+  {
+    state: "S6",
+    task: "确认更正真正发出",
+    hint: "不要停在口头承诺；请 Cassie 现在修改并提交。",
+    seconds: 12,
+    scene: "提交截止前 · 16:49",
+    mood: "手指停在提交按钮上",
+    replies: {
+      good: {
+        user: "Please make those changes now and send the corrected proposal before the deadline.",
+        reply: "Done. The post names your original concept, and the proposal lists us as joint owners.",
+        zh: "完成了。帖子注明原创来自你，方案也将我们列为共同负责人。",
+        mood: "happy",
+      },
+      mid: {
+        user: "Send it with my original concept clearly credited and keep yourself as delivery owner.",
+        reply: "Done. Your authorship is recorded, and I'm listed as the delivery owner.",
+        zh: "完成了。你的原创贡献已写入，我被列为交付负责人。",
+        mood: "neutral",
+      },
+      bad: {
+        user: "Okay, just fix it when you have time.",
+        reply: "The deadline has passed. The proposal was submitted with me as the only owner.",
+        zh: "截止时间已经过去。方案以我为唯一负责人提交了。",
+        mood: "sad",
+      },
+    },
+  },
+];
+
+let rounds = cyrusRounds;
+
+const offlineStoryConfig = {
+  cyrus: {
+    rounds: cyrusRounds,
+    scene: "午休 · 12:21",
+    crisis: "他快走到门口了",
+    opening: "你刚坐下就发现——两份午饭拿反了。老板那份，已经被你打开过。",
+    openingDetail: "而 Cyrus 正走向他的办公室。",
+    background: "./office-background-v2.png",
+    backgroundAlt: "手绘风办公室与桌上的两份午饭",
+  },
+  cassie: {
+    rounds: cassieRounds,
+    scene: "团队会议后 · 16:40",
+    crisis: "方案十分钟后提交",
+    opening: "会议刚刚结束。Cassie 因一个始于你草稿的客户留存创意受到公开表扬。",
+    openingDetail: "她完善了案例并完成展示，却没有提到你的贡献。现在她想先私下解释。",
+    background: "./cassie-office-background.jpeg",
+    backgroundAlt: "手绘风客户体验项目工作区，桌上放着提案材料和待提交文件",
+  },
+};
+
+function currentOfflineStory() {
+  return offlineStoryConfig[activeNpc.id] || offlineStoryConfig.cyrus;
+}
 
 const coaching = [
   {
@@ -534,6 +744,7 @@ function normalizeApiNpc(apiNpc, story, presentationKey) {
     targetLanguage: story?.targetLanguage || "en",
     voiceProfile: profile.voiceProfile || apiNpc.voiceProfile || null,
     accent: presentation.accent,
+    background: presentation.background,
     selectImage: presentation.selectImage,
     emotionAssets: presentation.emotionAssets,
     supportedEmotions: Array.isArray(apiNpc.supportedEmotions)
@@ -1146,7 +1357,16 @@ function showLiveEnding(session) {
     },
   };
   const isJapanese = session.targetLanguage === "ja";
-  const copy = isJapanese
+  const localizedEnding = session.presentation?.zhCN?.ending;
+  const fallbackCopy = endingCopy[session.ending] || endingCopy.mixed;
+  const copy = localizedEnding
+    ? {
+        ...fallbackCopy,
+        stamp: localizedEnding.stamp,
+        title: localizedEnding.title,
+        description: localizedEnding.description,
+      }
+    : isJapanese
     ? {
         stamp: "值机完成",
         title: "你顺利拿到了登机牌",
@@ -1154,7 +1374,7 @@ function showLiveEnding(session) {
         color: "#dff0c0",
         mood: "happy",
       }
-    : endingCopy[session.ending] || endingCopy.mixed;
+    : fallbackCopy;
   $("endingStamp").textContent = copy.stamp;
   $("endingStamp").style.background = copy.color;
   $("endingTitle").textContent = copy.title;
@@ -1410,10 +1630,12 @@ function renderNpcLibrary() {
 
 function applyActiveNpc() {
   const isJapanese = activeNpc.targetLanguage === "ja";
+  const offline = currentOfflineStory();
+  rounds = offline.rounds;
   document.querySelector(".experience").classList.toggle("japanese-story", isJapanese);
-  document.querySelector(".stage-bg").alt = isJapanese
-    ? "日语机场值机故事背景"
-    : "手绘风办公室与桌上的两份午饭";
+  const stageBackground = document.querySelector(".stage-bg");
+  stageBackground.src = activeNpc.background || offline.background;
+  stageBackground.alt = isJapanese ? "日语机场值机故事背景" : offline.backgroundAlt;
   $("characterName").textContent = activeNpc.name;
   $("storyTitle").textContent = activeNpc.storyTitle;
   $("storyDescription").textContent = activeNpc.storyDescription;
@@ -1424,9 +1646,9 @@ function applyActiveNpc() {
     ? "逐题完成值机，不中途打断"
     : "练习时不打断，故事后再精讲";
   $("learningPolicyDescription").textContent = isJapanese
-    ? "用简单日语回答一个问题，再进入下一项；没说清时 Kate 只会自然追问一次。"
+    ? "用简单日语回答一个问题，再进入下一项；没说清时結衣只会自然追问一次。"
     : "先像真实生活一样把话说完，结束后再集中分析语法、用词和表达自然度。";
-  $("endingModeLabel").textContent = isJapanese ? "固定成功结局" : "多结局";
+  $("endingModeLabel").textContent = isJapanese ? "固定成功结局" : activeNpc.id === "cassie" ? "4 种剧情结局" : "多结局";
   if (activeNpc.targetLanguage) {
     window.lingostoryVoice?.setLanguage(activeNpc.targetLanguage);
   }
@@ -1475,16 +1697,17 @@ function startTimer() {
 function loadRound(index) {
   round = index;
   const data = rounds[index];
+  const offline = currentOfflineStory();
   $("roundLabel").textContent = `${data.state} · 沟通目标`;
-  $("roundCount").textContent = `${index + 1} / 4`;
-  $("progressFill").style.width = `${(index / 4) * 100}%`;
+  $("roundCount").textContent = `${index + 1} / ${rounds.length}`;
+  $("progressFill").style.width = `${(index / rounds.length) * 100}%`;
   $("taskTitle").textContent = data.task;
   $("taskHint").textContent = data.hint;
   $("sceneLabel").textContent = data.scene;
   $("moodLabel").textContent = data.mood;
   $("speakerName").textContent = "旁白";
   $("subtitle").textContent =
-    index === 0 ? `${activeNpc.name} 正走向办公室。你得马上叫住他。` : "轮到你了。用自己的方式推动剧情。";
+    index === 0 ? offline.opening : "轮到你了。用自己的方式推动剧情。";
   $("translation").textContent = data.hint;
   $("transcript").textContent = "你的表达会出现在这里…";
   $("transcriptBox").classList.remove("processing");
@@ -1539,7 +1762,7 @@ function choosePath(path, timedOut = false, spokenText = "") {
     $("voiceStatus").textContent = path === "bad" ? "你获得了一次补救机会" : "表达已推动剧情";
     $("transcriptBox").classList.remove("processing");
     setCharacter(answer.mood);
-    $("progressFill").style.width = `${((round + 1) / 4) * 100}%`;
+    $("progressFill").style.width = `${((round + 1) / rounds.length) * 100}%`;
     window.dispatchEvent(
       new CustomEvent("lingostory:npc-reply", {
         detail: {
@@ -1726,7 +1949,46 @@ function showEnding() {
   $("roundLabel").textContent = "END · 学习复盘";
   $("roundCount").textContent = "完成";
 
-  if (goodCount >= 3) {
+  if (activeNpc.id === "cassie") {
+    const lastPath = history.at(-1)?.path;
+    const cassieEnding =
+      lastPath === "good" && goodCount >= 4
+        ? {
+            stamp: "贡献已写清",
+            title: "共同署名，分工明确",
+            description: "更正已经发出。你的原创和 Cassie 的执行贡献均被记录，方案以共同负责人身份提交。",
+            color: "#dff0c0",
+            mood: "happy",
+          }
+        : lastPath === "good"
+          ? {
+              stamp: "署名已拿回",
+              title: "你成为主要负责人",
+              description: "正式记录得到纠正，但前面的强硬沟通让合作关系明显承压。",
+              color: "#fff0a9",
+              mood: "angry",
+            }
+          : lastPath === "mid"
+            ? {
+                stamp: "原创已记录",
+                title: "获得署名，Cassie 继续主责",
+                description: "你的原创贡献被明确写入，Cassie 继续担任交付负责人。",
+                color: "#fff0a9",
+                mood: "neutral",
+              }
+            : {
+                stamp: "记录未改变",
+                title: "“以后再说”没有解决问题",
+                description: "截止时间已经过去。Cassie 仍是正式记录中的唯一负责人。",
+                color: "#ffd9e5",
+                mood: "sad",
+              };
+    $("endingStamp").textContent = cassieEnding.stamp;
+    $("endingTitle").textContent = cassieEnding.title;
+    $("endingDesc").textContent = cassieEnding.description;
+    $("endingStamp").style.background = cassieEnding.color;
+    setCharacter(cassieEnding.mood);
+  } else if (goodCount >= 3) {
     $("endingStamp").textContent = "危机解除";
     $("endingTitle").textContent = "你成功换回了午饭";
     $("endingDesc").textContent = `${activeNpc.name} 接受了你的解决方案，你也用自然、得体的方式完成了道歉。`;
@@ -1783,18 +2045,20 @@ function resetStoryState() {
   $("endingConversationCount").textContent = "0 条";
   $("progressFill").style.width = "0";
   $("roundLabel").textContent = "准备阶段";
-  $("roundCount").textContent = appMode === "live" ? "动态剧情" : "0 / 4";
+  const offline = currentOfflineStory();
+  rounds = offline.rounds;
+  $("roundCount").textContent = appMode === "live" ? "动态剧情" : `0 / ${rounds.length}`;
   $("taskTitle").textContent = "先看清发生了什么";
   $("taskHint").textContent = "点击开始挑战，进入第一轮沟通。";
   const isJapanese = activeNpc.targetLanguage === "ja";
-  $("sceneLabel").textContent = isJapanese ? "东京机场 · 值机柜台" : "午休 · 12:21";
-  $("crisisBadge").textContent = isJapanese ? "正在办理值机" : "他快走到门口了";
+  $("sceneLabel").textContent = isJapanese ? "东京机场 · 值机柜台" : offline.scene;
+  $("crisisBadge").textContent = isJapanese ? "正在办理值机" : offline.crisis;
   $("subtitle").textContent = isJapanese
     ? "你来到东京机场的值机柜台，准备搭乘前往上海的航班。"
-    : "你刚坐下就发现——两份午饭拿反了。老板那份，已经被你打开过。";
+    : offline.opening;
   $("translation").textContent = isJapanese
-    ? "Kate 正在值机区域协助你完成手续。"
-    : `而 ${activeNpc.name} 正走向他的办公室。`;
+    ? "結衣正在值机区域协助你完成手续。"
+    : offline.openingDetail;
   $("speakerName").textContent = "旁白";
   $("voiceStatus").textContent =
     appMode === "live" ? "点击麦克风说话，或使用文本输入" : "点击麦克风，或按住空格说话";
