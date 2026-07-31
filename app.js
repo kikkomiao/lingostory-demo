@@ -72,7 +72,7 @@ const demoNpcLibrary = [
     estimatedMinutes: 4,
     level: "A1–A2 · 英语",
     accent: "#f2a05f",
-    background: "./mike-mtr-background-v2.png",
+    background: "./office-background-v2.png",
     selectImage: "./npc/mike/Mike_00_grid_select.png",
     emotionAssets: {
       neutral: "./npc/mike/Mike_01_neutral.png",
@@ -96,6 +96,7 @@ const demoNpcLibrary = [
     estimatedMinutes: 4,
     level: "粤语入门–初级 · 粤语",
     accent: "#d89a6a",
+    background: "./mike-mtr-background-v2.png",
     selectImage: "./npc/mary/Mary_00_grid_select.png",
     emotionAssets: {
       neutral: "./npc/mary/Mary_01_neutral.png",
