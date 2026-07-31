@@ -46,7 +46,7 @@ const fallbackProfiles = {
       "Kate 是你熟悉且可靠的图书馆联系人，态度友善，同时保持职业边界。",
     speakingStyleZh: "使用自然友好的英语，常用词汇为主，句子长度较短或适中。",
     selectImage: "./npc/kate/Kate_00_grid_select.png",
-    accent: "#f9b2cc",
+    accent: "#cfe6ff",
   },
   mike: {
     id: "mike",
@@ -66,7 +66,7 @@ const fallbackProfiles = {
       "Mike 是你经常接触的友好熟人，保持专业，也尊重个人边界。",
     speakingStyleZh: "使用温暖自然的日常英语，句子长度较短或适中。",
     selectImage: "./npc/mike/Mike_00_grid_select.png",
-    accent: "#abd9ff",
+    accent: "#f2a05f",
   },
   mary: {
     id: "mary",
@@ -86,7 +86,7 @@ const fallbackProfiles = {
       "Mary 是你熟悉且支持你的社区联系人，同时保持合适的职业边界。",
     speakingStyleZh: "使用清晰、自然、友好的日常英语，语速适中。",
     selectImage: "./npc/mary/Mary_00_grid_select.png",
-    accent: "#d7e8a5",
+    accent: "#d89a6a",
   },
   cassie: {
     id: "cassie",
@@ -107,7 +107,7 @@ const fallbackProfiles = {
     speakingStyleZh:
       "使用清晰的日常英语，语速适中，以常见词汇和简洁解释为主。",
     selectImage: "./npc/cassie/Cassie_00_grid_select.png",
-    accent: "#ffc992",
+    accent: "#f6b1ca",
   },
 };
 
