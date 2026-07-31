@@ -253,7 +253,10 @@
           </section>
 
           <form id="turnForm" class="turn-form hidden">
-            <label for="turnInput">用自己的方式回应</label>
+            <div class="turn-form-heading">
+              <label for="turnInput">用自己的方式回应</label>
+              <span class="turn-shortcut"><kbd>⌘</kbd> + <kbd>Enter</kbd> 发送</span>
+            </div>
             <div class="turn-input-row">
               <textarea
                 id="turnInput"
@@ -265,10 +268,6 @@
                 placeholder="Type what you want to say in English…"
               ></textarea>
               <button id="sendTurnBtn" type="submit">发送 →</button>
-            </div>
-            <div class="turn-form-meta">
-              <span>练习中不会打断纠错</span>
-              <span><kbd>⌘</kbd> + <kbd>Enter</kbd> 发送</span>
             </div>
           </form>
 

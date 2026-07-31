@@ -1292,7 +1292,7 @@ a:focus-visible {
 
 .transcript-box {
   display: flex;
-  flex: 1 1 0;
+  flex: 2 1 0;
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
@@ -1455,7 +1455,7 @@ a:focus-visible {
 
 .turn-form {
   display: flex;
-  flex: 1 1 0;
+  flex: 3 1 0;
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
@@ -1467,12 +1467,27 @@ a:focus-visible {
   box-shadow: 2px 3px 0 var(--ink);
 }
 
-.turn-form > label {
-  display: block;
+.turn-form-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   margin-bottom: 8px;
+}
+
+.turn-form-heading label {
   font-size: 10px;
   font-weight: 950;
 }
+
+.turn-shortcut {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.turn-shortcut kbd { padding: 1px 3px; border-width: 1px; font-size: 7px; }
 
 .turn-input-row {
   display: grid;
@@ -1531,18 +1546,6 @@ a:focus-visible {
 .turn-form.is-preparing .turn-input-row button:disabled {
   cursor: not-allowed;
 }
-
-.turn-form-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 8px;
-  color: var(--muted);
-  font-size: 8px;
-  font-weight: 750;
-}
-
-.turn-form-meta kbd { padding: 1px 3px; border-width: 1px; font-size: 7px; }
 
 .turn-error {
   margin-top: 12px;
@@ -1705,7 +1708,7 @@ kbd {
   .npc-card-body { min-height: 280px; }
   .turn-input-row { grid-template-columns: 1fr; }
   .turn-input-row button { min-height: 42px; }
-  .turn-form-meta span:last-child { display: none; }
+  .turn-shortcut { display: none; }
   .conversation-modal { padding: 12px; }
   .conversation-modal-card { width: calc(100vw - 20px); max-height: 84vh; box-shadow: 5px 6px 0 var(--yellow), 8px 9px 0 var(--ink); }
   .conversation-modal-header { gap: 14px; padding: 19px 18px 16px; }
