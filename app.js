@@ -1064,7 +1064,11 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   $("turnInput").placeholder = isJapanese
     ? "日本語で言いたいことを入力してください…"
     : "Type what you want to say in English…";
+  $("turnForm").classList.remove("is-preparing");
   $("turnForm").classList.remove("hidden");
+  $("turnInput").disabled = false;
+  $("sendTurnBtn").disabled = false;
+  $("sendTurnBtn").textContent = "发送 →";
   $("keyboardTip").classList.add("hidden");
   hideTurnError();
   setCharacter(normalizeEmotion(replyEmotion));
@@ -2075,9 +2079,14 @@ function resetStoryState() {
   $("transcriptBox").classList.remove("processing");
   $("translation").classList.remove("hidden");
   $("turnForm").reset();
-  $("turnForm").classList.add("hidden");
-  $("turnInput").disabled = false;
-  $("sendTurnBtn").disabled = false;
+  const showPreparedTurnForm = appMode === "live";
+  $("turnForm").classList.toggle("hidden", !showPreparedTurnForm);
+  $("turnForm").classList.toggle("is-preparing", showPreparedTurnForm);
+  $("turnInput").placeholder = isJapanese
+    ? "开始挑战后，可在这里输入日语…"
+    : "开始挑战后，可在这里输入英语…";
+  $("turnInput").disabled = showPreparedTurnForm;
+  $("sendTurnBtn").disabled = showPreparedTurnForm;
   $("sendTurnBtn").textContent = "发送 →";
   hideTurnError();
   $("keyboardTip").classList.toggle("hidden", appMode === "live");
@@ -2086,7 +2095,9 @@ function resetStoryState() {
   $("crisisBadge").classList.remove("visible");
   setPathDisabled(false);
   setCharacter("neutral");
-  updateTimer();
+  $("timerValue").textContent = "";
+  $("timer").querySelector(".timer-label").textContent = "";
+  $("timer").style.setProperty("--progress", "1");
 }
 
 function resetStory() {

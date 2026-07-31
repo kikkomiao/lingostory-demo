@@ -1522,6 +1522,16 @@ a:focus-visible {
   cursor: wait;
 }
 
+.turn-form.is-preparing textarea:disabled {
+  opacity: 1;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.turn-form.is-preparing .turn-input-row button:disabled {
+  cursor: not-allowed;
+}
+
 .turn-form-meta {
   display: flex;
   justify-content: space-between;
