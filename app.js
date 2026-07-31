@@ -1,31 +1,55 @@
 const $ = (id) => document.getElementById(id);
 
+const npcLibrary = [
+  {
+    id: "cyrus",
+    name: "Cyrus",
+    role: "大型科技公司高管",
+    storyId: "lunch-mixup",
+    episode: "LINGOSTORY · EP.01",
+    storyTitle: "拿错了老板的午饭",
+    storyDescription: "开口推动剧情！你有 4 轮对话，在 Cyrus 走进办公室之前补救这场午餐危机。",
+    level: "A2–B1 · 职场沟通",
+    selectImage: "/assets/npc/cyrus/Cyrus_00_grid_select.png",
+    emotionAssets: {
+      neutral: "/assets/npc/cyrus/Cyrus_01_neutral.png",
+      happy: "/assets/npc/cyrus/Cyrus_02_happy.png",
+      sad: "/assets/npc/cyrus/Cyrus_03_sad.png",
+      angry: "/assets/npc/cyrus/Cyrus_04_angry.png",
+      surprised: "/assets/npc/cyrus/Cyrus_05_surprised.png",
+      nervous: "/assets/npc/cyrus/Cyrus_06_nervous.png",
+    },
+  },
+];
+
+let activeNpc = npcLibrary[0];
+
 const rounds = [
   {
     state: "S1",
     task: "在他进门前叫住他",
-    hint: "称呼 Alex，并明确让他先停下来。",
+    hint: "称呼 Cyrus，并明确让他先停下来。",
     seconds: 8,
     scene: "办公室走廊 · 12:21",
     mood: "正走向办公室",
     replies: {
       good: {
-        user: "Wait, Alex—please don’t go into your office yet.",
+        user: "Wait, Cyrus—please don’t go into your office yet.",
         reply: "Okay, I’m stopping. What happened?",
         zh: "好，我停下了。发生什么事了？",
         mood: "neutral",
       },
       mid: {
-        user: "Alex, can you come here for a second?",
+        user: "Cyrus, can you come here for a second?",
         reply: "Sure—but is this about the lunch in my office?",
         zh: "可以——是因为我办公室里的午饭吗？",
-        mood: "neutral",
+        mood: "surprised",
       },
       bad: {
         user: "There is something wrong.",
         reply: "What exactly is wrong? I’m about to go in.",
         zh: "到底怎么了？我正准备进去。",
-        mood: "impatient",
+        mood: "angry",
       },
     },
   },
@@ -41,19 +65,19 @@ const rounds = [
         user: "I’m afraid I mixed up our lunches.",
         reply: "I see. So the lunch on my desk is yours?",
         zh: "明白了。所以我桌上的那份其实是你的？",
-        mood: "neutral",
+        mood: "surprised",
       },
       mid: {
         user: "The lunch is not right.",
         reply: "Do you mean we got each other’s lunch?",
         zh: "你的意思是，我们拿了对方的午饭？",
-        mood: "neutral",
+        mood: "nervous",
       },
       bad: {
         user: "That one is mine… maybe.",
         reply: "Which one? Please be clear—I’m getting hungry.",
         zh: "哪一份？请说清楚，我已经饿了。",
-        mood: "impatient",
+        mood: "angry",
       },
     },
   },
@@ -69,19 +93,19 @@ const rounds = [
         user: "Let me replace yours right away. I’ll order the same meal.",
         reply: "That works. Thanks for handling it quickly.",
         zh: "可以。谢谢你这么快处理好。",
-        mood: "relieved",
+        mood: "happy",
       },
       mid: {
         user: "I can buy something later.",
         reply: "Could you order it now? I have a meeting soon.",
         zh: "可以现在点吗？我马上有个会。",
-        mood: "neutral",
+        mood: "nervous",
       },
       bad: {
         user: "Can you eat mine?",
         reply: "I’d rather not. What else can we do?",
         zh: "我不太想。还有别的办法吗？",
-        mood: "impatient",
+        mood: "sad",
       },
     },
   },
@@ -97,7 +121,7 @@ const rounds = [
         user: "I’ve reordered it. It’ll be here in twenty minutes—sorry again.",
         reply: "No worries. Thanks for sorting it out.",
         zh: "没关系，谢谢你处理好了。",
-        mood: "relieved",
+        mood: "happy",
       },
       mid: {
         user: "Okay, I will do it.",
@@ -109,7 +133,7 @@ const rounds = [
         user: "So… we are good?",
         reply: "Order it first, please. Then we’re good.",
         zh: "请先下单。然后就没事了。",
-        mood: "impatient",
+        mood: "angry",
       },
     },
   },
@@ -118,12 +142,12 @@ const rounds = [
 const coaching = [
   {
     label: "叫住对方",
-    upgrade: "Wait, Alex—please don’t go into your office yet.",
-    chunks: ["Wait, Alex", "please don’t go in", "yet"],
+    upgrade: "Wait, Cyrus—please don’t go into your office yet.",
+    chunks: ["Wait, Cyrus", "please don’t go in", "yet"],
     feedback: {
       good: { grammar: "语法：准确", vocab: "用词：自然", issue: "称呼、请求和时间压力都表达得很清楚。" },
       mid: { grammar: "语法：准确", vocab: "用词：信息不足", issue: "对方会停下，但还不知道为什么不能进办公室。" },
-      bad: { grammar: "语法：准确", vocab: "用词：过于模糊", issue: "something wrong 没有说明需要 Alex 立刻停下。" },
+      bad: { grammar: "语法：准确", vocab: "用词：过于模糊", issue: "something wrong 没有说明需要 Cyrus 立刻停下。" },
     },
   },
   {
@@ -174,14 +198,62 @@ let reviewEntries = [];
 let coachStep = -1;
 let focusReviewIndex = 0;
 
+function renderNpcLibrary() {
+  const grid = $("npcGrid");
+  grid.replaceChildren();
+  $("npcCount").textContent = String(npcLibrary.length);
+
+  npcLibrary.forEach((npc) => {
+    const card = document.createElement("article");
+    card.className = "npc-card";
+    card.dataset.npcId = npc.id;
+    card.innerHTML = `
+      <div class="npc-portrait">
+        <span class="npc-availability">可体验</span>
+        <img src="${npc.selectImage}" alt="${npc.name} 的角色选择立绘" />
+      </div>
+      <div class="npc-card-body">
+        <span class="npc-role">${npc.role}</span>
+        <h2>${npc.name}</h2>
+        <span class="npc-story-label">专属剧情 · ${npc.episode.replace("LINGOSTORY · ", "")}</span>
+        <p class="npc-story-title">${npc.storyTitle}</p>
+        <div class="npc-emotions" aria-label="支持的剧情情绪">
+          <span>中性</span><span>开心</span><span>难过</span>
+          <span>生气</span><span>紧张</span><span>惊讶</span>
+        </div>
+        <button class="npc-enter" type="button" data-select-npc="${npc.id}">
+          选择 ${npc.name}，进入剧情 →
+        </button>
+      </div>
+    `;
+    grid.append(card);
+  });
+}
+
+function applyActiveNpc() {
+  $("characterName").textContent = activeNpc.name;
+  $("storyEpisode").textContent = activeNpc.episode;
+  $("storyTitle").textContent = activeNpc.storyTitle;
+  $("storyDescription").textContent = activeNpc.storyDescription;
+  $("character").alt = `${activeNpc.name} 的中性情绪立绘`;
+  setCharacter("neutral");
+}
+
 function setCharacter(mood) {
-  $("character").className = `character character--${mood}`;
+  const character = $("character");
+  const safeMood = activeNpc.emotionAssets[mood] ? mood : "neutral";
+  character.src = activeNpc.emotionAssets[safeMood];
+  character.dataset.mood = safeMood;
+  character.alt = `${activeNpc.name} 的${safeMood}情绪立绘`;
   const labels = {
     neutral: "在听你解释",
-    impatient: "有点不耐烦",
-    relieved: "松了一口气",
+    happy: "开心地接受了",
+    sad: "有些失望",
+    angry: "明显生气了",
+    nervous: "有一点紧张",
+    surprised: "有些惊讶",
   };
-  $("moodLabel").textContent = labels[mood] || "还没发现问题";
+  $("moodLabel").textContent = labels[safeMood] || "还没发现问题";
 }
 
 function updateTimer() {
@@ -215,12 +287,13 @@ function loadRound(index) {
   $("sceneLabel").textContent = data.scene;
   $("moodLabel").textContent = data.mood;
   $("speakerName").textContent = "旁白";
-  $("subtitle").textContent = index === 0 ? "Alex 正走向办公室。你得马上叫住他。" : "轮到你了。用自己的方式推动剧情。";
+  $("subtitle").textContent =
+    index === 0 ? `${activeNpc.name} 正走向办公室。你得马上叫住他。` : "轮到你了。用自己的方式推动剧情。";
   $("translation").textContent = data.hint;
   $("transcript").textContent = "你的表达会出现在这里…";
   $("transcriptBox").classList.remove("processing");
   $("crisisBadge").classList.toggle("visible", index === 0 || currentPath === "bad");
-  setCharacter(index > 0 && currentPath === "bad" ? "impatient" : "neutral");
+  setCharacter(index > 0 && currentPath === "bad" ? "angry" : "neutral");
   setPathDisabled(false);
   startTimer();
 }
@@ -260,7 +333,7 @@ function choosePath(path, timedOut = false) {
   history.push({ round, path, line: timedOut ? "（没有识别到有效表达）" : answer.user });
 
   setTimeout(() => {
-    $("speakerName").textContent = "Alex";
+    $("speakerName").textContent = activeNpc.name;
     $("subtitle").innerHTML =
       path === "good"
         ? answer.reply.replace(/(stopping|mixed up|order|Thanks|No worries)/gi, '<span class="highlight">$1</span>')
@@ -446,15 +519,15 @@ function showEnding() {
   if (goodCount >= 3) {
     $("endingStamp").textContent = "危机解除";
     $("endingTitle").textContent = "你成功换回了午饭";
-    $("endingDesc").textContent = "Alex 接受了你的解决方案，你也用自然、得体的方式完成了道歉。";
+    $("endingDesc").textContent = `${activeNpc.name} 接受了你的解决方案，你也用自然、得体的方式完成了道歉。`;
     $("endingStamp").style.background = "#dff0c0";
-    setCharacter("relieved");
+    setCharacter("happy");
   } else if (badCount >= 2) {
     $("endingStamp").textContent = "惊险收尾";
     $("endingTitle").textContent = "午饭保住了，气氛有点尴尬";
     $("endingDesc").textContent = "你的意思最终被理解，但更明确的动作和语气会让沟通轻松很多。";
     $("endingStamp").style.background = "#ffd9e5";
-    setCharacter("impatient");
+    setCharacter("angry");
   } else {
     $("endingStamp").textContent = "普通结局";
     $("endingTitle").textContent = "问题解决了";
@@ -500,7 +573,7 @@ function showEnding() {
   requestAnimationFrame(() => drawScoreTrendChart(weakestIndex));
 }
 
-function reset() {
+function resetStoryState() {
   clearInterval(timerId);
   round = -1;
   history = [];
@@ -509,27 +582,65 @@ function reset() {
   reviewEntries = [];
   coachStep = -1;
   focusReviewIndex = 0;
-  $("introOverlay").classList.remove("hidden");
   $("endingOverlay").classList.add("hidden");
-  document.querySelector(".experience").classList.remove("review-mode");
   $("progressFill").style.width = "0";
   $("roundLabel").textContent = "准备阶段";
   $("roundCount").textContent = "0 / 4";
   $("taskTitle").textContent = "先看清发生了什么";
   $("taskHint").textContent = "点击开始挑战，进入第一轮沟通。";
   $("subtitle").textContent = "你刚坐下就发现——两份午饭拿反了。老板那份，已经被你打开过。";
-  $("translation").textContent = "而 Alex 正走向他的办公室。";
+  $("translation").textContent = `而 ${activeNpc.name} 正走向他的办公室。`;
+  $("speakerName").textContent = "旁白";
+  $("voiceStatus").textContent = "点击麦克风，或按住空格说话";
+  $("transcript").textContent = "你的表达会出现在这里…";
+  $("transcriptBox").classList.remove("processing");
+  $("micBtn").classList.remove("listening");
+  $("wave").classList.remove("active");
   $("crisisBadge").classList.remove("visible");
+  setPathDisabled(false);
   setCharacter("neutral");
   updateTimer();
+}
+
+function resetStory() {
+  resetStoryState();
+  const experience = document.querySelector(".experience");
+  experience.classList.remove("review-mode", "library-mode");
+  $("npcLibraryOverlay").classList.add("hidden");
+  $("introOverlay").classList.remove("hidden");
+}
+
+function showNpcLibrary() {
+  resetStoryState();
+  const experience = document.querySelector(".experience");
+  experience.classList.remove("review-mode");
+  experience.classList.add("library-mode");
+  $("introOverlay").classList.add("hidden");
+  $("npcLibraryOverlay").classList.remove("hidden");
+}
+
+function selectNpc(npcId) {
+  const nextNpc = npcLibrary.find((npc) => npc.id === npcId);
+  if (!nextNpc) return;
+  activeNpc = nextNpc;
+  applyActiveNpc();
+  resetStory();
 }
 
 $("startBtn").addEventListener("click", () => {
   $("introOverlay").classList.add("hidden");
   loadRound(0);
 });
-$("restartBtn").addEventListener("click", reset);
-$("retryBtn").addEventListener("click", reset);
+$("npcGrid").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-select-npc]");
+  if (button) selectNpc(button.dataset.selectNpc);
+});
+$("brandHome").addEventListener("click", (event) => {
+  event.preventDefault();
+  showNpcLibrary();
+});
+$("restartBtn").addEventListener("click", showNpcLibrary);
+$("retryBtn").addEventListener("click", resetStory);
 $("listenBtn").addEventListener("click", () => {
   $("listenBtn").textContent = "♪ 正在播放…";
   $("coachStatus").textContent = "先听重音和停顿：不要逐词翻译。";
@@ -578,4 +689,6 @@ window.addEventListener("resize", () => {
   }
 });
 
-reset();
+renderNpcLibrary();
+applyActiveNpc();
+showNpcLibrary();
