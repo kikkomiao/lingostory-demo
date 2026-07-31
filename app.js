@@ -1498,6 +1498,7 @@ async function restorePlaythrough() {
       activeNpc = boundDisplayName ? { ...sessionNpc, name: boundDisplayName } : sessionNpc;
     }
     applyActiveNpc();
+    setLibraryTopbar(false);
     document.querySelector(".experience").classList.remove("library-mode");
     $("npcLibraryOverlay").classList.add("hidden");
     $("introOverlay").classList.add("hidden");
@@ -2136,14 +2137,22 @@ function resetStoryState() {
 
 function resetStory() {
   resetStoryState();
+  setLibraryTopbar(false);
   const experience = document.querySelector(".experience");
   experience.classList.remove("review-mode", "library-mode");
   $("npcLibraryOverlay").classList.add("hidden");
   $("introOverlay").classList.remove("hidden");
 }
 
+function setLibraryTopbar(isLibrary) {
+  $("homeBtn").classList.toggle("hidden", !isLibrary);
+  $("conversationPanel").classList.toggle("hidden", isLibrary);
+  $("restartBtn").classList.toggle("hidden", isLibrary);
+}
+
 function showNpcLibrary() {
   resetStoryState();
+  setLibraryTopbar(true);
   const experience = document.querySelector(".experience");
   experience.classList.remove("review-mode");
   experience.classList.add("library-mode");
@@ -2177,6 +2186,12 @@ $("brandHome").addEventListener("click", (event) => {
   event.preventDefault();
   clearStoredPlaythrough();
   showNpcLibrary();
+});
+$("homeBtn").addEventListener("click", () => {
+  clearStoredPlaythrough();
+  showNpcLibrary();
+  gameEntry.classList.remove("hidden", "is-transitioning");
+  document.body.classList.add("game-entry-open");
 });
 $("restartBtn").addEventListener("click", () => {
   clearStoredPlaythrough();
@@ -2231,14 +2246,15 @@ if (REQUESTED_NPC_ID && !forceGameEntry) {
   gameEntryTrigger.addEventListener(
     "click",
     () => {
+      if (gameEntry.classList.contains("is-transitioning")) return;
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       gameEntry.classList.add("is-transitioning");
       window.setTimeout(() => {
         gameEntry.classList.add("hidden");
+        gameEntry.classList.remove("is-transitioning");
         document.body.classList.remove("game-entry-open");
       }, reducedMotion ? 80 : 1100);
     },
-    { once: true },
   );
 }
 
