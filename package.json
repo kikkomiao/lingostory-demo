@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "node dev-server.mjs",
-    "check": "node --check app.js && node --check voice.js && node --check voice-tts.js && node --check transcript.js && node --check dev-server.mjs && node --check scripts/fixture-server.mjs && node --check scripts/generate-tts-baseline.mjs && node --test tests/*.test.mjs",
+    "check": "node --check app.js && node --check audio.js && node --check landing.js && node --check voice.js && node --check voice-tts.js && node --check transcript.js && node --check dev-server.mjs && node --check scripts/fixture-server.mjs && node --check scripts/generate-tts-baseline.mjs && node --test tests/*.test.mjs",
     "baseline:tts": "node scripts/generate-tts-baseline.mjs",
     "copy:voice": "node scripts/copy-voice-assets.mjs",
     "postinstall": "npm run copy:voice"
