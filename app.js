@@ -331,6 +331,8 @@ let submittingTurn = false;
 let userSelectedNpc = false;
 let apiConnecting = false;
 let conversationModalTrigger = null;
+let conversationSessionId = null;
+let optimisticConversationEntries = [];
 
 const emotionAliases = {
   focused: "neutral",
@@ -599,10 +601,68 @@ function populateConversationList(list, count, entries) {
   count.textContent = `${entries.length} 条`;
 }
 
-function renderConversation(session) {
-  const entries = (session.events || [])
+function conversationSignature(entry) {
+  return [entry.kind, entry.speaker, entry.text, entry.translation || ""].join("\u0000");
+}
+
+function conversationEndsWith(entries, tail) {
+  if (!tail.length || entries.length < tail.length) return false;
+  return tail.every(
+    (entry, index) =>
+      conversationSignature(entry) ===
+      conversationSignature(entries[entries.length - tail.length + index]),
+  );
+}
+
+function currentTurnConversationEntries(npcReply, userText, npcName) {
+  const entries = [];
+  if (userText) entries.push({ kind: "user", speaker: "你", text: userText });
+  if (npcReply?.utterance) {
+    entries.push({
+      kind: "npc",
+      speaker: npcName,
+      text: npcReply.utterance,
+      translation: npcReply.translationZh || "",
+    });
+  }
+  if (npcReply?.stageText) {
+    entries.push({ kind: "action", speaker: "动作", text: npcReply.stageText });
+  }
+  return entries;
+}
+
+function currentTurnIsInServerHistory(serverEntries, currentTurnEntries) {
+  const serverDialogue = serverEntries.filter(
+    (entry) => entry.kind === "user" || entry.kind === "npc",
+  );
+  const currentDialogue = currentTurnEntries.filter(
+    (entry) => entry.kind === "user" || entry.kind === "npc",
+  );
+  return conversationEndsWith(serverDialogue, currentDialogue);
+}
+
+function renderConversation(session, npcReply = null, userText = "") {
+  const sessionId = session.sessionId || session.id;
+  if (conversationSessionId !== sessionId) {
+    conversationSessionId = sessionId;
+    optimisticConversationEntries = [];
+  }
+
+  const serverEntries = (session.events || [])
     .map((event) => conversationEntry(event, session.activeNpc?.displayName || activeNpc.name))
     .filter(Boolean);
+  const currentTurnEntries = currentTurnConversationEntries(
+    npcReply,
+    userText,
+    session.activeNpc?.displayName || session.activeNpc?.name || activeNpc.name,
+  );
+  if (
+    currentTurnEntries.length &&
+    !currentTurnIsInServerHistory(serverEntries, currentTurnEntries)
+  ) {
+    optimisticConversationEntries.push(...currentTurnEntries);
+  }
+  const entries = [...serverEntries, ...optimisticConversationEntries];
   populateConversationList($("conversationList"), $("conversationCount"), entries);
   populateConversationList(
     $("endingConversationList"),
@@ -684,7 +744,7 @@ function renderLiveSession(session, npcReply = null, userText = "") {
     applyActiveNpc();
   }
 
-  renderConversation(session);
+  renderConversation(session, npcReply, userText);
 
   if (session.phase === "ended") {
     showLiveEnding(session);
@@ -1382,6 +1442,8 @@ function resetStoryState() {
   coachStep = -1;
   focusReviewIndex = 0;
   liveSession = null;
+  conversationSessionId = null;
+  optimisticConversationEntries = [];
   pendingTurn = null;
   submittingTurn = false;
   $("endingOverlay").classList.add("hidden");
