@@ -83,11 +83,11 @@ const demoNpcLibrary = [
     source: "demo",
     availability: "comingSoon",
     name: "Mary",
-    role: "社区图书馆助理 · 日常会话伙伴",
+    role: "社区咖啡店咖啡师 · 入门点单",
     storyId: null,
     episode: "专属剧情 · 待公布",
     storyTitle: "故事正在筹备中",
-    storyDescription: "Mary 的图书馆服务与日常会话场景正在编排，故事确定后即可开放。",
+    storyDescription: "Mary 的咖啡店点单场景需要连接后端后开放。",
     level: "故事待定",
     accent: "#d89a6a",
     selectImage: "./npc/mary/Mary_00_grid_select.png",
@@ -156,6 +156,10 @@ const storyPresentation = {
   "whose-idea-cassie-en-v1": {
     title: "这个想法是谁的？",
     synopsis: "厘清原创与执行贡献，并在提交前让署名和负责人记录真正改变。",
+  },
+  "corner-cafe-order-mary-en-v1": {
+    title: "在街角咖啡店点单",
+    synopsis: "用入门英语回答 Mary 的常见点单问题，完成一杯属于自己的咖啡订单。",
   },
 };
 
