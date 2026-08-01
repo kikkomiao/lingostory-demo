@@ -81,34 +81,6 @@ body.game-entry-open { overflow: hidden; }
   cursor: pointer;
 }
 
-.game-entry-sound {
-  position: absolute;
-  top: 22px;
-  right: 24px;
-  z-index: 4;
-  width: 46px;
-  height: 46px;
-  border: 3px solid #17252e;
-  border-radius: 15px 18px 14px 17px;
-  background: #fffaf0;
-  box-shadow: 3px 4px 0 #17252e;
-  color: #17252e;
-  font-size: 20px;
-  font-weight: 1000;
-  cursor: pointer;
-  transition: opacity .16s ease, transform .16s ease, box-shadow .16s ease;
-}
-
-.game-entry-sound:hover {
-  box-shadow: 1px 2px 0 #17252e;
-  transform: translate(2px, 2px) rotate(2deg);
-}
-
-.game-entry.is-exiting .game-entry-sound {
-  pointer-events: none;
-  opacity: 0;
-}
-
 .game-entry-trigger:focus-visible {
   outline: 6px solid var(--yellow);
   outline-offset: -10px;
@@ -863,6 +835,55 @@ a:focus-visible {
   color: var(--muted);
   font-weight: 650;
   line-height: 1.65;
+}
+
+.learning-policy {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 11px;
+  align-items: start;
+  margin-top: 17px;
+  padding: 13px 15px 14px;
+  border: 2px dashed #8faec8;
+  border-radius: 14px 18px 13px 16px;
+  background: #eef7ff;
+  color: var(--ink);
+}
+
+.learning-policy-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: #fff0a8;
+  color: var(--blue);
+  font-size: 17px;
+  line-height: 1;
+}
+
+.learning-policy-label {
+  display: inline-block;
+  margin-bottom: 5px;
+  color: #397fb8;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.learning-policy b {
+  display: block;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.learning-policy p {
+  margin: 5px 0 0;
+  color: #69645c;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.55;
 }
 
 .story-facts {
@@ -1807,7 +1828,6 @@ kbd {
 }
 
 @media (max-width: 520px) {
-  .game-entry-sound { top: 14px; right: 14px; width: 42px; height: 42px; }
   .app-shell { padding: 0 10px 16px; }
   .brand-wordmark { width: 126px; }
   .topbar-right { gap: 6px; }

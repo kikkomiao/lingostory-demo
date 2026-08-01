@@ -1016,7 +1016,6 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   const previousSessionId = liveSession?.sessionId || liveSession?.id;
   const nextSessionId = session.sessionId || session.id;
   const enteringSession = !previousSessionId || previousSessionId !== nextSessionId;
-  setMenuAudioMode(false);
   liveSession = session;
   storePlaythroughId(session.sessionId || session.id);
   window.lingostoryVoice?.setLanguage(session.targetLanguage || "en");
@@ -2760,7 +2759,6 @@ function resetStoryState() {
 function resetStory() {
   resetStoryState();
   setLibraryTopbar(false);
-  setMenuAudioMode(true);
   const experience = document.querySelector(".experience");
   experience.classList.remove("review-mode", "library-mode");
   $("npcLibraryOverlay").classList.add("hidden");
@@ -2774,16 +2772,9 @@ function setLibraryTopbar(isLibrary) {
   $("restartBtn").classList.toggle("hidden", isLibrary);
 }
 
-function setMenuAudioMode(isMenu) {
-  $("soundBtn").classList.toggle("hidden", !isMenu);
-  if (isMenu) window.lingostoryAudio?.enterMenu();
-  else window.lingostoryAudio?.enterConversation();
-}
-
 function showNpcLibrary() {
   resetStoryState();
   setLibraryTopbar(true);
-  setMenuAudioMode(true);
   const experience = document.querySelector(".experience");
   experience.classList.remove("review-mode");
   experience.classList.add("library-mode");
@@ -2806,7 +2797,6 @@ $("startBtn").addEventListener("click", async () => {
     await startLiveStory();
     return;
   }
-  setMenuAudioMode(false);
   $("introOverlay").classList.add("hidden");
   loadRound(0);
 });

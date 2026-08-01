@@ -14,7 +14,7 @@
     <div id="gameEntry" class="game-entry">
       <iframe
         class="game-entry-demo"
-        src="./landing.html?entry=1"
+        src="./landing.html?entry=1&v=38315cd"
         title="LingoStory 游戏开屏动画"
         tabindex="-1"
         aria-hidden="true"
@@ -25,17 +25,9 @@
         type="button"
         aria-label="点击任意地方进入 LingoStory 学习"
       ></button>
-      <button
-        id="entrySoundBtn"
-        class="game-entry-sound"
-        type="button"
-        data-sound-toggle
-        aria-pressed="true"
-        aria-label="关闭背景音乐和按钮音效"
-      >♪</button>
       <div class="game-entry-transition" aria-hidden="true">
         <i></i><i></i><i></i><i></i>
-        <strong>LISTEN!</strong>
+        <strong>START!</strong>
       </div>
     </div>
 
@@ -48,14 +40,6 @@
           <button id="apiRetryBtn" class="connection-retry" type="button" hidden>
             重新连接
           </button>
-          <button
-            id="soundBtn"
-            class="icon-btn"
-            type="button"
-            data-sound-toggle
-            aria-pressed="true"
-            aria-label="关闭背景音乐和按钮音效"
-          >♪</button>
           <button id="historyBtn" class="soft-btn hidden" type="button">
             历史记录 <small id="historyCount">0</small>
           </button>
@@ -133,8 +117,9 @@
               <h1 id="storyTitle">拿错了老板的午饭</h1>
               <p id="storyDescription">开口推动剧情！你有 4 轮对话，在 Cyrus 走进办公室之前补救这场午餐危机。</p>
               <div class="learning-policy">
-                <span aria-hidden="true">✦</span>
+                <span class="learning-policy-icon" aria-hidden="true">✦</span>
                 <div>
+                  <span class="learning-policy-label">练习提示</span>
                   <b id="learningPolicyTitle">练习时不打断，故事后再精讲</b>
                   <p id="learningPolicyDescription">先像真实生活一样把话说完，结束后再集中分析语法、用词和表达自然度。</p>
                 </div>
@@ -437,8 +422,7 @@
         </div>
       </section>
     </main>
-    <script src="./audio.js?v=20260801-conversation-silence"></script>
-    <script src="./app.js?v=20260801-story-history"></script>
+    <script src="./app.js?v=20260801-story-history-no-background-music"></script>
     <script src="./vendor/voice/ort.min.js"></script>
     <script src="./vendor/voice/vad.bundle.min.js"></script>
     <script type="module" src="./voice.js?v=20260801-space-recording"></script>
