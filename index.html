@@ -14,7 +14,7 @@
     <div id="gameEntry" class="game-entry">
       <iframe
         class="game-entry-demo"
-        src="./landing.html?entry=1"
+        src="./landing.html?entry=1&v=38315cd"
         title="LingoStory 游戏开屏动画"
         tabindex="-1"
         aria-hidden="true"
@@ -25,17 +25,9 @@
         type="button"
         aria-label="点击任意地方进入 LingoStory 学习"
       ></button>
-      <button
-        id="entrySoundBtn"
-        class="game-entry-sound"
-        type="button"
-        data-sound-toggle
-        aria-pressed="true"
-        aria-label="关闭背景音乐和按钮音效"
-      >♪</button>
       <div class="game-entry-transition" aria-hidden="true">
         <i></i><i></i><i></i><i></i>
-        <strong>LISTEN!</strong>
+        <strong>START!</strong>
       </div>
     </div>
 
@@ -48,14 +40,9 @@
           <button id="apiRetryBtn" class="connection-retry" type="button" hidden>
             重新连接
           </button>
-          <button
-            id="soundBtn"
-            class="icon-btn"
-            type="button"
-            data-sound-toggle
-            aria-pressed="true"
-            aria-label="关闭背景音乐和按钮音效"
-          >♪</button>
+          <button id="historyBtn" class="soft-btn hidden" type="button">
+            历史记录 <small id="historyCount">0</small>
+          </button>
           <button id="homeBtn" class="soft-btn" type="button">← 返回首页</button>
           <button
             id="conversationPanel"
@@ -130,8 +117,9 @@
               <h1 id="storyTitle">拿错了老板的午饭</h1>
               <p id="storyDescription">开口推动剧情！你有 4 轮对话，在 Cyrus 走进办公室之前补救这场午餐危机。</p>
               <div class="learning-policy">
-                <span aria-hidden="true">✦</span>
+                <span class="learning-policy-icon" aria-hidden="true">✦</span>
                 <div>
+                  <span class="learning-policy-label">练习提示</span>
                   <b id="learningPolicyTitle">练习时不打断，故事后再精讲</b>
                   <p id="learningPolicyDescription">先像真实生活一样把话说完，结束后再集中分析语法、用词和表达自然度。</p>
                 </div>
@@ -332,6 +320,88 @@
         </aside>
       </section>
 
+      <section id="historyView" class="history-view hidden" aria-labelledby="historyTitle">
+        <div id="historyListScreen" class="history-screen">
+          <header class="history-page-header">
+            <button id="historyCloseBtn" class="history-back-btn" type="button">← 返回角色库</button>
+            <div>
+              <span>STORY ARCHIVE</span>
+              <h1 id="historyTitle">你走过的故事</h1>
+              <p>每次完成的对话、剧情路线和学习复盘都保存在这里。</p>
+            </div>
+            <strong id="historyTotal">0 局完成</strong>
+          </header>
+
+          <nav id="historyFilters" class="history-filters" aria-label="按故事筛选"></nav>
+          <div id="historyListState" class="history-state" aria-live="polite"></div>
+          <div id="historyGrid" class="history-grid"></div>
+          <button id="historyLoadMoreBtn" class="secondary-btn history-load-more hidden" type="button">加载更多</button>
+        </div>
+
+        <div id="historyDetailScreen" class="history-screen history-detail-screen hidden">
+          <header class="history-detail-nav">
+            <button id="historyDetailBackBtn" class="history-back-btn" type="button">← 返回历史记录</button>
+            <span>只读回顾</span>
+          </header>
+          <div id="historyDetailState" class="history-state" aria-live="polite"></div>
+          <article id="historyDetailContent" class="history-detail-content hidden">
+            <section class="history-poster">
+              <div class="history-poster-visual">
+                <img id="historyDetailBackground" src="./office-background-v2.png" alt="" />
+                <div></div>
+                <img id="historyDetailNpc" src="./npc/cyrus/Cyrus_02_happy.png" alt="" />
+                <span id="historyDetailStamp">顺利完成</span>
+              </div>
+              <div class="history-poster-copy">
+                <p>STORY COMPLETE</p>
+                <h2 id="historyDetailTitle">故事回顾</h2>
+                <p id="historyDetailDescription"></p>
+                <dl class="ending-facts">
+                  <div><dt>NPC</dt><dd id="historyDetailNpcName"></dd></div>
+                  <div><dt>表达</dt><dd id="historyDetailTurns"></dd></div>
+                  <div><dt>语言</dt><dd id="historyDetailLanguage"></dd></div>
+                </dl>
+                <time id="historyDetailTime"></time>
+              </div>
+            </section>
+
+            <section class="history-route-section">
+              <header><span>剧情走向</span><h2>这一局是怎样走到结局的</h2></header>
+              <ol id="historyRoute" class="history-route"></ol>
+            </section>
+
+            <details class="history-conversation" open>
+              <summary><span>完整对话</span><small id="historyConversationCount">0 条</small></summary>
+              <ol id="historyConversation" class="conversation-list"></ol>
+            </details>
+
+            <section class="history-review-section">
+              <header><span>学习复盘</span><h2>这一局最值得带走的内容</h2></header>
+              <div id="historyReviewContent" class="history-review-content hidden">
+                <section class="review-summary-card"><span>一句总评</span><p id="historyReviewSummary"></p></section>
+                <div class="review-insights">
+                  <section class="insight-card strengths-card"><h3>做得最好</h3><div id="historyStrengthList" class="insight-list"></div></section>
+                  <section class="insight-card priorities-card"><h3>下一次先改</h3><div id="historyPriorityList" class="insight-list"></div></section>
+                </div>
+                <section id="historyExamplesPanel" class="examples-panel"><h3>一句升级</h3><div id="historyExampleList" class="example-list"></div></section>
+                <footer class="review-actions"><p><b>下次练习目标：</b><span id="historyNextGoal"></span></p></footer>
+                <details id="historyReviewDetails" class="review-details">
+                  <summary>查看六维能力与评价范围</summary>
+                  <div id="historyDimensionList" class="dimension-list"></div>
+                  <ul id="historyLimitations" class="history-limitations"></ul>
+                </details>
+              </div>
+              <section id="historyReviewState" class="review-state" aria-live="polite">
+                <div class="review-state-mark" aria-hidden="true">↻</div>
+                <div class="review-state-copy"><b>正在读取复盘</b><p>故事内容已经可以查看。</p></div>
+                <button id="historyReviewRetryBtn" class="secondary-btn hidden" type="button">重新生成复盘</button>
+                <div class="review-progress" aria-hidden="true"><i></i></div>
+              </section>
+            </section>
+          </article>
+        </div>
+      </section>
+
       <section
         id="conversationModal"
         class="conversation-modal hidden"
@@ -352,8 +422,7 @@
         </div>
       </section>
     </main>
-    <script src="./audio.js?v=20260801-conversation-silence"></script>
-    <script src="./app.js?v=20260801-compact-review"></script>
+    <script src="./app.js?v=20260801-story-history-no-background-music"></script>
     <script src="./vendor/voice/ort.min.js"></script>
     <script src="./vendor/voice/vad.bundle.min.js"></script>
     <script type="module" src="./voice.js?v=20260801-space-recording"></script>

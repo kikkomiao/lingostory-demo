@@ -29,6 +29,11 @@ body.entry-mode .play-toggle {
   visibility: hidden;
 }
 
+body.entry-mode .now-playing,
+body.entry-mode .progress-dots {
+  visibility: hidden;
+}
+
 body {
   font-family: "Arial Rounded MT Bold", "SF Pro Rounded", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
   text-rendering: optimizeLegibility;

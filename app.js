@@ -592,6 +592,16 @@ let reviewPollTimer = null;
 let reviewRequestToken = 0;
 let reviewPollAttempts = 0;
 let reviewRetryMode = "check";
+let historyEntries = [];
+let historyNextCursor = null;
+let historyTotal = 0;
+let historyFilter = "all";
+let historyLoading = false;
+let historyLoadError = null;
+let historyOpen = false;
+let historyDetailId = null;
+let historyReviewTimer = null;
+let historyReviewAttempts = 0;
 
 const emotionAliases = {
   focused: "neutral",
@@ -1006,7 +1016,6 @@ function renderLiveSession(session, npcReply = null, userText = "") {
   const previousSessionId = liveSession?.sessionId || liveSession?.id;
   const nextSessionId = session.sessionId || session.id;
   const enteringSession = !previousSessionId || previousSessionId !== nextSessionId;
-  setMenuAudioMode(false);
   liveSession = session;
   storePlaythroughId(session.sessionId || session.id);
   window.lingostoryVoice?.setLanguage(session.targetLanguage || "en");
@@ -1403,6 +1412,478 @@ function startLanguageReview({ forceRetry = false } = {}) {
   void requestLanguageReview(sessionId, token, forceRetry ? "POST" : "GET");
 }
 
+function historyLanguageLabel(value) {
+  return { en: "英语", ja: "日语", yue: "粤语" }[value] || "目标语言";
+}
+
+function historyEndingLabel(value) {
+  return { good: "良好结局", mixed: "普通结局", bad: "惊险结局" }[value] || "故事结局";
+}
+
+function formatHistoryDate(value, includeYear = false) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "时间未知";
+  return new Intl.DateTimeFormat("zh-CN", {
+    ...(includeYear ? { year: "numeric" } : {}),
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+}
+
+function stopHistoryReviewPolling() {
+  if (historyReviewTimer) clearTimeout(historyReviewTimer);
+  historyReviewTimer = null;
+  historyReviewAttempts = 0;
+}
+
+function showHistoryState(containerId, message, { error = false, retry = null } = {}) {
+  const container = $(containerId);
+  container.replaceChildren();
+  container.classList.toggle("error", error);
+  if (!message) {
+    container.classList.add("hidden");
+    return;
+  }
+  container.classList.remove("hidden");
+  container.append(createReviewTextElement("p", "", message));
+  if (retry) {
+    const button = createReviewTextElement("button", "secondary-btn", "重新加载");
+    button.type = "button";
+    button.addEventListener("click", retry);
+    container.append(button);
+  }
+}
+
+function historyAssets(npcId) {
+  const presentation = npcPresentation[npcId];
+  return {
+    background: presentation?.background || "./office-background-v2.png",
+    portrait:
+      presentation?.emotionAssets?.happy ||
+      presentation?.selectImage ||
+      "./npc/cyrus/Cyrus_02_happy.png",
+    known: Boolean(presentation),
+  };
+}
+
+function renderHistoryFilters() {
+  const filters = $("historyFilters");
+  filters.replaceChildren();
+  const stories = new Map();
+  historyEntries.forEach((entry) => {
+    stories.set(entry.storyId, entry.storyTitleZh || entry.storyTitle || "历史故事");
+  });
+  const options = [["all", "全部"], ...stories.entries()];
+  options.forEach(([value, label]) => {
+    const button = createReviewTextElement("button", "", label);
+    button.type = "button";
+    button.dataset.historyFilter = value;
+    button.setAttribute("aria-pressed", String(historyFilter === value));
+    filters.append(button);
+  });
+}
+
+function renderHistoryList() {
+  $("historyCount").textContent = String(historyTotal);
+  $("historyTotal").textContent = `${historyTotal} 局完成`;
+  renderHistoryFilters();
+  const grid = $("historyGrid");
+  grid.replaceChildren();
+  const visible = historyFilter === "all"
+    ? historyEntries
+    : historyEntries.filter((entry) => entry.storyId === historyFilter);
+
+  if (historyLoadError) {
+    showHistoryState("historyListState", historyLoadError, {
+      error: true,
+      retry: () => void loadHistoryPage({ reset: historyEntries.length === 0 }),
+    });
+  } else if (!historyLoading && historyTotal === 0) {
+    showHistoryState("historyListState", "还没有完成的故事。完成第一段剧情后，它会出现在这里。");
+  } else if (!historyLoading && visible.length === 0) {
+    showHistoryState("historyListState", "这个故事还没有加载到已完成记录。");
+  } else {
+    showHistoryState("historyListState", "");
+  }
+
+  visible.forEach((entry) => {
+    const assets = historyAssets(entry.npcId);
+    const article = document.createElement("article");
+    article.className = "history-card";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.historyId = entry.playthroughId;
+    button.setAttribute("aria-label", `查看${entry.storyTitleZh || entry.storyTitle}的历史详情`);
+
+    const cover = document.createElement("div");
+    cover.className = "history-card-cover";
+    const background = document.createElement("img");
+    background.src = assets.background;
+    background.alt = "";
+    const portrait = document.createElement("img");
+    portrait.className = "history-card-npc";
+    portrait.src = assets.portrait;
+    portrait.alt = "";
+    portrait.classList.toggle("history-asset-fallback", !assets.known);
+    cover.append(
+      background,
+      portrait,
+      createReviewTextElement("span", "history-card-stamp", entry.endingPresentation?.stamp || historyEndingLabel(entry.ending)),
+    );
+
+    const body = document.createElement("div");
+    body.className = "history-card-body";
+    const meta = document.createElement("div");
+    meta.className = "history-card-meta";
+    meta.append(
+      createReviewTextElement("span", "", entry.npcName || "NPC"),
+      createReviewTextElement("time", "", formatHistoryDate(entry.completedAt)),
+    );
+    body.append(
+      meta,
+      createReviewTextElement("h2", "", entry.storyTitleZh || entry.storyTitle || "历史故事"),
+      createReviewTextElement(
+        "p",
+        "",
+        `${historyEndingLabel(entry.ending)} · ${entry.turnCount} 回合 · ${historyLanguageLabel(entry.targetLanguage)}`,
+      ),
+      createReviewTextElement(
+        "small",
+        `history-review-badge review-${entry.reviewStatus}`,
+        entry.reviewStatus === "completed"
+          ? "复盘已完成"
+          : entry.reviewStatus === "unavailable"
+            ? "本局无语言复盘"
+            : entry.reviewStatus === "failed"
+              ? "复盘可重试"
+              : "复盘整理中",
+      ),
+    );
+    button.append(cover, body);
+    article.append(button);
+    grid.append(article);
+  });
+  $("historyLoadMoreBtn").classList.toggle("hidden", !historyNextCursor);
+  $("historyLoadMoreBtn").disabled = historyLoading;
+  $("historyLoadMoreBtn").textContent = historyLoading ? "正在加载…" : "加载更多";
+}
+
+async function loadHistoryPage({ reset = false } = {}) {
+  if (historyLoading) return;
+  historyLoading = true;
+  if (reset) {
+    historyEntries = [];
+    historyNextCursor = null;
+    historyFilter = "all";
+    historyLoadError = null;
+    showHistoryState("historyListState", "正在读取已完成的故事…");
+  }
+  renderHistoryList();
+  try {
+    const query = new URLSearchParams({ limit: "20" });
+    if (!reset && historyNextCursor) query.set("cursor", historyNextCursor);
+    const response = await apiRequest(`/api/playthroughs/history?${query}`);
+    historyLoadError = null;
+    const incoming = Array.isArray(response.items) ? response.items : [];
+    const existingIds = new Set(historyEntries.map((entry) => entry.playthroughId));
+    historyEntries = [
+      ...historyEntries,
+      ...incoming.filter((entry) => !existingIds.has(entry.playthroughId)),
+    ];
+    historyNextCursor = response.nextCursor || null;
+    historyTotal = Number(response.total) || 0;
+  } catch (error) {
+    historyLoadError = localizedApiError(error);
+  } finally {
+    historyLoading = false;
+    renderHistoryList();
+  }
+}
+
+async function refreshHistoryCount() {
+  if (!apiReady) return;
+  try {
+    const response = await apiRequest("/api/playthroughs/history?limit=1");
+    historyTotal = Number(response.total) || 0;
+    $("historyCount").textContent = String(historyTotal);
+  } catch {
+    // The story library remains usable if history is temporarily unavailable.
+  }
+}
+
+function openHistoryView() {
+  historyOpen = true;
+  stopLanguageReviewPolling();
+  stopHistoryReviewPolling();
+  setMenuAudioMode(true);
+  $("historyView").classList.remove("hidden");
+  $("historyListScreen").classList.remove("hidden");
+  $("historyDetailScreen").classList.add("hidden");
+  document.body.classList.add("history-open");
+  void loadHistoryPage({ reset: true });
+  $("historyCloseBtn").focus();
+}
+
+function closeHistoryView() {
+  historyOpen = false;
+  historyDetailId = null;
+  stopHistoryReviewPolling();
+  $("historyView").classList.add("hidden");
+  document.body.classList.remove("history-open");
+  $("historyBtn").focus();
+}
+
+function showHistoryListScreen() {
+  historyDetailId = null;
+  stopHistoryReviewPolling();
+  $("historyDetailScreen").classList.add("hidden");
+  $("historyListScreen").classList.remove("hidden");
+  $("historyDetailBackBtn").blur();
+  $("historyCloseBtn").focus();
+}
+
+function historyConversationEntry(event, npcName) {
+  if (event.type === "session_started") {
+    return {
+      kind: "action",
+      speaker: "开场",
+      text: event.presentation?.zhCN?.text || event.text || "故事开始",
+    };
+  }
+  if (event.type === "user_utterance") {
+    return { kind: "user", speaker: "你", text: event.text || "" };
+  }
+  if (event.type === "npc_utterance") {
+    return { kind: "npc", speaker: npcName, text: event.text || "" };
+  }
+  if (event.type === "npc_action") {
+    return { kind: "action", speaker: "动作", text: event.stageText || event.text || "" };
+  }
+  return null;
+}
+
+function renderHistoryRoute(route, ending) {
+  const list = $("historyRoute");
+  list.replaceChildren();
+  (Array.isArray(route) ? route : []).forEach((step) => {
+    const item = document.createElement("li");
+    const marker = createReviewTextElement("span", "history-route-marker", String(step.index));
+    const body = document.createElement("div");
+    body.append(createReviewTextElement("h3", "", step.goalZh || "推进剧情"));
+    const lines = Array.isArray(step.userLines) ? step.userLines : [];
+    lines.forEach((line) => {
+      body.append(createReviewTextElement("blockquote", "", `“${line.text}”`));
+    });
+    if (step.decision) {
+      body.append(
+        createReviewTextElement(
+          "p",
+          "history-route-decision",
+          `关键选择：${step.decision.description || step.decision.id}`,
+        ),
+      );
+    }
+    item.append(marker, body);
+    list.append(item);
+  });
+  const finalItem = document.createElement("li");
+  finalItem.className = "history-route-ending";
+  finalItem.append(
+    createReviewTextElement("span", "history-route-marker", "✓"),
+    createReviewTextElement(
+      "div",
+      "",
+      ending?.presentation?.title || "故事完成",
+    ),
+  );
+  list.append(finalItem);
+}
+
+function setHistoricalReviewState(state, title, description, { retry = false } = {}) {
+  const panel = $("historyReviewState");
+  panel.dataset.state = state;
+  panel.classList.remove("hidden");
+  panel.querySelector(".review-state-mark").textContent =
+    state === "completed" ? "✓" : state === "failed" ? "!" : state === "unavailable" ? "·" : "↻";
+  panel.querySelector("b").textContent = title;
+  panel.querySelector("p").textContent = description;
+  panel.querySelector(".review-progress").classList.toggle("hidden", state !== "loading");
+  $("historyReviewRetryBtn").classList.toggle("hidden", !retry);
+}
+
+function renderHistoryInsight(containerId, item, type) {
+  const container = $(containerId);
+  container.replaceChildren();
+  if (!item) {
+    container.append(createReviewTextElement("p", "insight-item", "本轮没有足够证据。"));
+    return;
+  }
+  const article = document.createElement("article");
+  article.className = "insight-item";
+  article.append(
+    createReviewTextElement("b", "", compactReviewText(item.titleZh, 30)),
+    createReviewTextElement("p", "", compactReviewText(item.explanationZh, 60)),
+  );
+  if (type === "priority" && item.practiceTipZh) {
+    article.append(createReviewTextElement("small", "", `练习提示：${compactReviewText(item.practiceTipZh, 50)}`));
+  }
+  container.append(article);
+}
+
+function renderHistoricalReview(review) {
+  const status = review?.status || "unavailable";
+  if (status !== "completed" || !review.result) {
+    $("historyReviewContent").classList.add("hidden");
+    if (status === "failed") {
+      stopHistoryReviewPolling();
+      setHistoricalReviewState("failed", "这次复盘没有生成成功", "完整故事仍然保留，可以重新生成复盘。", { retry: true });
+      return;
+    }
+    if (status === "unavailable") {
+      stopHistoryReviewPolling();
+      setHistoricalReviewState("unavailable", "本局不提供语言复盘", "剧情路线和完整对话仍可正常回看。");
+      return;
+    }
+    setHistoricalReviewState("loading", status === "running" ? "AI 正在整理本局复盘" : "复盘正在排队", "故事内容已经可以查看。" );
+    scheduleHistoryReviewPoll();
+    return;
+  }
+
+  const result = review.result;
+  stopHistoryReviewPolling();
+  $("historyReviewContent").classList.remove("hidden");
+  $("historyReviewSummary").textContent = compactReviewText(result.summaryZh, 45);
+  $("historyNextGoal").textContent = compactReviewText(result.nextPracticeGoalZh, 30);
+  renderHistoryInsight("historyStrengthList", result.strengths?.[0], "strength");
+  renderHistoryInsight("historyPriorityList", result.priorities?.[0], "priority");
+
+  const examples = Array.isArray(result.examples) ? result.examples.slice(0, 1) : [];
+  $("historyExamplesPanel").classList.toggle("hidden", examples.length === 0);
+  const exampleList = $("historyExampleList");
+  exampleList.replaceChildren();
+  examples.forEach((example) => {
+    const article = document.createElement("article");
+    article.className = "example-item";
+    const original = document.createElement("div");
+    original.className = "example-copy";
+    original.append(createReviewTextElement("span", "", "你的原句"), createReviewTextElement("p", "", example.original || "（未保留原句）"));
+    const natural = document.createElement("div");
+    natural.className = "example-copy natural";
+    natural.append(createReviewTextElement("span", "", "更自然的表达"), createReviewTextElement("p", "", example.naturalAlternative || example.minimalCorrection));
+    article.append(original, natural, createReviewTextElement("p", "example-explanation", compactReviewText(example.explanationZh, 60)));
+    exampleList.append(article);
+  });
+
+  const dimensions = $("historyDimensionList");
+  dimensions.replaceChildren();
+  (Array.isArray(result.dimensions) ? result.dimensions : []).forEach((dimension) => {
+    const level = Number.isInteger(dimension.level) ? dimension.level : 0;
+    const item = document.createElement("article");
+    item.className = "dimension-item";
+    const head = document.createElement("div");
+    head.className = "dimension-head";
+    head.append(
+      createReviewTextElement("span", "dimension-name", languageDimensionMeta[dimension.id] || dimension.id),
+      createReviewTextElement("span", "dimension-level", level ? `${level} 级 · ${reviewLevelLabels[level]}` : reviewLevelLabels[0]),
+    );
+    const track = document.createElement("div");
+    track.className = "level-track";
+    for (let index = 1; index <= 4; index += 1) {
+      const segment = document.createElement("i");
+      segment.classList.toggle("active", index <= level);
+      track.append(segment);
+    }
+    item.append(head, track, createReviewTextElement("p", "", dimension.rationaleZh));
+    dimensions.append(item);
+  });
+  const limitations = $("historyLimitations");
+  limitations.replaceChildren();
+  (Array.isArray(result.limitationsZh) ? result.limitationsZh.slice(0, 2) : []).forEach((item) => {
+    limitations.append(createReviewTextElement("li", "", item));
+  });
+  $("historyReviewDetails").removeAttribute("open");
+  setHistoricalReviewState("completed", "复盘已保存", review.rubricVersion === "language-review-v1" ? "这是一份兼容保留的旧版复盘。" : "已提炼本局最值得关注的内容。");
+}
+
+function scheduleHistoryReviewPoll() {
+  if (!historyDetailId || historyReviewTimer) return;
+  historyReviewAttempts += 1;
+  if (historyReviewAttempts > REVIEW_MAX_POLL_ATTEMPTS) {
+    setHistoricalReviewState("failed", "复盘仍在后台生成", "可以稍后重新打开这条历史记录。", { retry: true });
+    return;
+  }
+  historyReviewTimer = setTimeout(async () => {
+    historyReviewTimer = null;
+    if (!historyOpen || !historyDetailId) return;
+    try {
+      const response = await apiRequest(`/api/playthroughs/${encodeURIComponent(historyDetailId)}/history-detail`);
+      renderHistoricalReview(response.languageReview);
+    } catch (error) {
+      setHistoricalReviewState("failed", "暂时无法刷新复盘", localizedApiError(error), { retry: true });
+    }
+  }, REVIEW_POLL_INTERVAL_MS);
+}
+
+async function requestHistoricalReview() {
+  if (!historyDetailId) return;
+  stopHistoryReviewPolling();
+  setHistoricalReviewState("loading", "正在重新生成复盘", "故事内容已经可以查看。" );
+  try {
+    await apiRequest(`/api/playthroughs/${encodeURIComponent(historyDetailId)}/language-review`, {
+      method: "POST",
+      body: JSON.stringify({}),
+      timeoutMs: 30000,
+    });
+    scheduleHistoryReviewPoll();
+  } catch (error) {
+    setHistoricalReviewState("failed", "暂时无法生成复盘", localizedApiError(error), { retry: true });
+  }
+}
+
+async function openHistoryDetail(playthroughId) {
+  historyDetailId = playthroughId;
+  stopHistoryReviewPolling();
+  $("historyListScreen").classList.add("hidden");
+  $("historyDetailScreen").classList.remove("hidden");
+  $("historyDetailContent").classList.add("hidden");
+  showHistoryState("historyDetailState", "正在打开完整故事记录…");
+  $("historyDetailBackBtn").focus();
+  try {
+    const detail = await apiRequest(`/api/playthroughs/${encodeURIComponent(playthroughId)}/history-detail`);
+    if (historyDetailId !== playthroughId) return;
+    const assets = historyAssets(detail.story?.npcId);
+    $("historyDetailBackground").src = assets.background;
+    $("historyDetailNpc").src = assets.portrait;
+    $("historyDetailNpc").classList.toggle("history-asset-fallback", !assets.known);
+    $("historyDetailNpc").alt = assets.known ? `${detail.story.npcName} 的结局立绘` : "通用故事角色立绘";
+    $("historyDetailStamp").textContent = detail.ending?.presentation?.stamp || historyEndingLabel(detail.ending?.type);
+    $("historyDetailTitle").textContent = detail.ending?.presentation?.title || detail.story?.titleZh || detail.story?.title || "故事回顾";
+    $("historyDetailDescription").textContent = detail.ending?.presentation?.description || detail.story?.synopsisZh || detail.story?.synopsis || "本局记录已保存。";
+    $("historyDetailNpcName").textContent = detail.story?.npcName || "NPC";
+    $("historyDetailTurns").textContent = `${detail.turnCount || 0} 回合`;
+    $("historyDetailLanguage").textContent = historyLanguageLabel(detail.story?.targetLanguage);
+    $("historyDetailTime").textContent = `完成于 ${formatHistoryDate(detail.completedAt, true)}`;
+    renderHistoryRoute(detail.route, detail.ending);
+    const conversation = (Array.isArray(detail.conversation) ? detail.conversation : [])
+      .map((event) => historyConversationEntry(event, detail.story?.npcName || "NPC"))
+      .filter(Boolean);
+    populateConversationList($("historyConversation"), $("historyConversationCount"), conversation);
+    $("historyDetailContent").classList.remove("hidden");
+    showHistoryState("historyDetailState", "");
+    renderHistoricalReview(detail.languageReview);
+    if (detail.languageReview?.status === "not_started") void requestHistoricalReview();
+  } catch (error) {
+    if (historyDetailId !== playthroughId) return;
+    showHistoryState("historyDetailState", localizedApiError(error), {
+      error: true,
+      retry: () => void openHistoryDetail(playthroughId),
+    });
+  }
+}
+
 function configureEndingPoster(session, stamp) {
   const languageName = {
     en: "英语",
@@ -1667,6 +2148,7 @@ async function initializeData({ force = false } = {}) {
     renderNpcLibrary();
     applyActiveNpc();
     setConnectionState("live", "真实 API");
+    void refreshHistoryCount();
     if (requestedApiNpc) {
       clearStoredPlaythrough();
       resetStory();
@@ -2278,7 +2760,6 @@ function resetStoryState() {
 function resetStory() {
   resetStoryState();
   setLibraryTopbar(false);
-  setMenuAudioMode(true);
   const experience = document.querySelector(".experience");
   experience.classList.remove("review-mode", "library-mode");
   $("npcLibraryOverlay").classList.add("hidden");
@@ -2287,20 +2768,14 @@ function resetStory() {
 
 function setLibraryTopbar(isLibrary) {
   $("homeBtn").classList.toggle("hidden", !isLibrary);
+  $("historyBtn").classList.toggle("hidden", !isLibrary);
   $("conversationPanel").classList.toggle("hidden", isLibrary);
   $("restartBtn").classList.toggle("hidden", isLibrary);
-}
-
-function setMenuAudioMode(isMenu) {
-  $("soundBtn").classList.toggle("hidden", !isMenu);
-  if (isMenu) window.lingostoryAudio?.enterMenu();
-  else window.lingostoryAudio?.enterConversation();
 }
 
 function showNpcLibrary() {
   resetStoryState();
   setLibraryTopbar(true);
-  setMenuAudioMode(true);
   const experience = document.querySelector(".experience");
   experience.classList.remove("review-mode");
   experience.classList.add("library-mode");
@@ -2323,7 +2798,6 @@ $("startBtn").addEventListener("click", async () => {
     await startLiveStory();
     return;
   }
-  setMenuAudioMode(false);
   $("introOverlay").classList.add("hidden");
   loadRound(0);
 });
@@ -2354,6 +2828,21 @@ $("endingNpcBtn").addEventListener("click", () => {
   clearStoredPlaythrough();
   showNpcLibrary();
 });
+$("historyBtn").addEventListener("click", openHistoryView);
+$("historyCloseBtn").addEventListener("click", closeHistoryView);
+$("historyDetailBackBtn").addEventListener("click", showHistoryListScreen);
+$("historyLoadMoreBtn").addEventListener("click", () => void loadHistoryPage());
+$("historyFilters").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-history-filter]");
+  if (!button) return;
+  historyFilter = button.dataset.historyFilter;
+  renderHistoryList();
+});
+$("historyGrid").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-history-id]");
+  if (button) void openHistoryDetail(button.dataset.historyId);
+});
+$("historyReviewRetryBtn").addEventListener("click", () => void requestHistoricalReview());
 $("reviewRetryBtn").addEventListener("click", () => {
   startLanguageReview({ forceRetry: reviewRetryMode === "retry" });
 });
@@ -2421,6 +2910,14 @@ document.querySelectorAll(".path-btn").forEach((button) => {
   button.addEventListener("click", () => choosePath(button.dataset.path));
 });
 document.addEventListener("keydown", (event) => {
+  if (historyOpen) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      if (historyDetailId) showHistoryListScreen();
+      else closeHistoryView();
+    }
+    return;
+  }
   if (!$("conversationModal").classList.contains("hidden")) {
     if (event.key === "Escape") closeConversationModal();
     return;
